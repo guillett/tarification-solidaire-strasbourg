@@ -4,8 +4,8 @@ Description=Python server
 [Service]
 User=main
 Group=aides_jeunes
-WorkingDirectory=/home/main/experiment
-ExecStart=/home/main/experiment/venv_experiment/bin/gunicorn run
+WorkingDirectory=/home/main/experiment/tarification-solidaire-strasbourg/server
+ExecStart=/home/main/experiment/venv/bin/gunicorn run
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
