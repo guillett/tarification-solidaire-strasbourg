@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+td, th {
+  text-align: right;
+  padding: 0em 1em;
+}

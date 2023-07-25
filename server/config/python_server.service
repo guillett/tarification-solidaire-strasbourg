@@ -1,0 +1,12 @@
+[Unit]
+Description=Python server
+
+[Service]
+User=main
+Group=aides_jeunes
+WorkingDirectory=/home/main/experiment
+ExecStart=/home/main/experiment/venv_experiment/bin/gunicorn run
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

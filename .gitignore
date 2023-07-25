@@ -1,1 +1,5 @@
+*.dat
+.env
 .ipynb_checkpoints
+*.profile
+__pycache__
