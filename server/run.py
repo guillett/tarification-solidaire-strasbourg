@@ -3,8 +3,10 @@ sys.path.append('../mobilite')
 
 from utils import *
 
+import datetime
 from flask import jsonify, Flask, request
 from flask_cors import CORS
+
 application = Flask(__name__, static_folder="front/out", static_url_path="/")
 CORS(application, origins="*")
 
@@ -131,5 +133,18 @@ def fetch():
     })
 
     recettes = df_reform[['sample_id', 'recettes']].groupby(by='sample_id').sum().describe()
+
+    timestamp = datetime.datetime.now()
+    api.add_records('Scenarios_transports', [
+        {
+            'Date': timestamp.isoformat(),
+            'Scenario': scenario,
+            'Baremes': json.dumps(steps),
+            'QF': qf,
+            'Recettes': recettes[recettes.index == '50%'].recettes[0],
+            "Ecart_type_recettes": recettes[recettes.index == 'std'].recettes[0]
+        },
+    ])
+
     html_table = recettes.to_html(float_format=lambda x: "{0:,.0f}".format(x).replace(",", " "))
     return jsonify({"table": html_table})
