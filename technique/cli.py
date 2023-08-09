@@ -1,3 +1,3 @@
 from compute import compute
 
-print(compute('Base', 'caf'))
+print(compute("Base", "caf"))
