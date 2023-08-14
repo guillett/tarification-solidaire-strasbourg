@@ -9,7 +9,7 @@ class StrasbourgSurveyScenario(AbstractSurveyScenario):
         super(StrasbourgSurveyScenario, self).__init__()
 
         self.year = base_period
-        self.non_neutralizable_variables = ["qf_caf", "qf_fiscal"]
+        self.non_neutralizable_variables = tbs.variables.keys()
 
         if "input_data_frame_by_entity" in data:
             dataframe_variables = set()

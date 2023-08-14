@@ -36,9 +36,9 @@ qftype_override = {
     "QF_AGENT_EMS": constant_value(800),
     "QF_CE": constant_value(800),
     "QF_CBW": constant_value(0),
-    "QF_CCS_TP": constant_value(250),
-    "QF_CCS_RA": constant_value(150),
-    "QF_CCS_RB": constant_value(50),
+    "QF_CCS_TP": constant_value(921),
+    "QF_CCS_RA": constant_value(821),
+    "QF_CCS_RB": constant_value(500),
 }
 
 
