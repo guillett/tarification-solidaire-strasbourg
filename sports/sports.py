@@ -1,7 +1,7 @@
 import sys
 
 sys.path.append("../technique")
-from utils import *
+from utils import determine_age, determine_qf, StrasbourgSurveyScenario, base_period
 import numpy as np
 import pandas as pd
 
@@ -118,7 +118,7 @@ def compute(tbs, df, categorie):
             + product_df.qfrule.str.contains("EMS"),
         }
     )
-    determine_qf(famille_df, qfrules_constant)
+    determine_qf(famille_df)
 
     menage_df = pd.DataFrame({})
     foyerfiscaux_df = pd.DataFrame({})

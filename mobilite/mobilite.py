@@ -8,7 +8,7 @@ import os
 import pandas as pd
 
 load_dotenv()
-from utils import *
+from utils import determine_age, determine_qf, StrasbourgSurveyScenario, base_period
 
 
 def add_compensation(df):
@@ -72,7 +72,7 @@ def build_data(df, res_df, sample_count=1):
             "qfrule": sample_qfrule,
         }
     )
-    determine_qf(sample_famille_df, unif_qf)  # , caf_to_fiscal=alea_caf_fiscal)
+    determine_qf(sample_famille_df)
     sample_menage_df = pd.DataFrame(
         {
             "eurometropole_strasbourg_tarification_solidaire_transport_eligibilite_geographique": np.ones(

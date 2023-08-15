@@ -1,7 +1,7 @@
 import sys
 
 sys.path.append("../technique")
-from utils import *
+from utils import StrasbourgSurveyScenario, base_period, get_data, determine_qf
 
 import numpy as np
 import pandas as pd
@@ -74,11 +74,11 @@ def get_results(tbs):
     )
     famille_df = pd.DataFrame(
         {
-            "strasbourg_metropole_quotient_familial": [
-                1.0 * q for (f, p, q) in raw_df.index
-            ],
+            "qfrule": ["QF==" + str(q) for (f, p, q) in raw_df.index],
         }
     )
+    determine_qf(famille_df)
+
     menage_df = pd.DataFrame({})
     foyerfiscaux_df = pd.DataFrame({})
 

@@ -65,8 +65,11 @@ qftype_override = LogAccessDict(
     }
 )
 
+qfrules = qfrules_constant
+caf_to_fiscal = None
 
-def determine_qf(individu_df, qfrules, caf_to_fiscal=None):
+
+def determine_qf(individu_df):
     determine_qf_caf(individu_df, qfrules)
     if caf_to_fiscal:
         individu_df["qf_fiscal"] = caf_to_fiscal(individu_df["qf_caf"])

@@ -1,7 +1,7 @@
 import sys
 
 sys.path.append("../technique")
-from utils import *
+from utils import determine_qf, StrasbourgSurveyScenario, base_period, get_data
 
 import numpy as np
 from openfisca_france import CountryTaxBenefitSystem
@@ -66,7 +66,7 @@ def build_data(df):
             "qfrule": "QF==" + df.QF.astype("str"),
         }
     )
-    determine_qf(famille_df, qfrules_constant)
+    determine_qf(famille_df)
     menage_df = pd.DataFrame({})
     foyerfiscaux_df = pd.DataFrame({})
 

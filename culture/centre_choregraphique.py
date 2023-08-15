@@ -1,7 +1,7 @@
 import sys
 
 sys.path.append("../technique")
-from utils import *
+from utils import determine_age, determine_qf, StrasbourgSurveyScenario, base_period
 import pandas as pd
 
 
@@ -60,7 +60,7 @@ def compute(tbs, df, categorie):
             "strasbourg_centre_choregraphique_tarif": product_df.Tarif,
         }
     )
-    determine_qf(famille_df, qfrules_constant)
+    determine_qf(famille_df)
 
     menage_df = pd.DataFrame({})
     foyerfiscaux_df = pd.DataFrame({})
