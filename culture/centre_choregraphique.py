@@ -57,6 +57,7 @@ def compute(tbs, df, categorie):
     famille_df = pd.DataFrame(
         {
             "qfrule": product_df.qfrule,
+            "strasbourg_centre_choregraphique_tarif": product_df.Tarif,
         }
     )
     determine_qf(famille_df, qfrules_constant)

@@ -101,6 +101,10 @@ def compute(tbs, df, categorie):
             "taux_incapacite": np.where(
                 product_df.qfrule.str.contains("HANDICAP"), 0.8, 0
             ),
+            "ass": product_df.qfrule.str.contains("ASS"),
+            "evasion": product_df.qfrule.str.contains("EVASION"),
+            "cada": product_df.qfrule.str.contains("CADA"),
+            "etudiant": product_df.qfrule.str.contains("ETU"),
             openfisca_input_variable: product_df.quantité,
         }
     )
@@ -109,6 +113,9 @@ def compute(tbs, df, categorie):
     famille_df = pd.DataFrame(
         {
             "qfrule": product_df.qfrule,
+            "rsa": product_df.qfrule.str.contains("RSA"),
+            "agent_ems": product_df.qfrule.str.contains("CUS")
+            + product_df.qfrule.str.contains("EMS"),
         }
     )
     determine_qf(famille_df, qfrules_constant)
@@ -137,6 +144,7 @@ def compute(tbs, df, categorie):
     res_prix = pd.DataFrame(
         data={
             "prestation": product_df.prestation,
+            "qfrule": product_df.qfrule,
             "qf_caf": famille_df.qf_caf,
             "age": individu_df.age,
             "res": (prix - product_df[champ_pu]).abs() < 0.001,

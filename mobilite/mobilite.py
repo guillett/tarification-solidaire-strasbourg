@@ -60,6 +60,9 @@ def build_data(df, res_df, sample_count=1):
                 sample_count,
             ),
             "eurometropole_strasbourg_tarification_solidaire_transport_quotient_familial_etudiant": 10000,
+            "emeraude": np.tile(
+                np.repeat(df.Titres == "Emeraude", df.quantité), sample_count
+            ),
         }
     )
     determine_age(sample_individu_df)

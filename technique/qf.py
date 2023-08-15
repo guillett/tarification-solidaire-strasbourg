@@ -15,31 +15,55 @@ unif_qf = dyn_rules(np.random.randint, qf_min, qf_max)
 qfrules_constant = dyn_rules(
     lambda mi, ma, s: (np.ones(s) * (mi + ma - 1) / 2).astype("int64"), qf_min, qf_max
 )
+qf_default_rule = qfrules_constant
 
-qftype_override = {
-    "QF_MINEUR": constant_value(700),
-    "QF_AGE418": constant_value(1000),
-    "QF_AGE1925": constant_value(1000),
-    "QF_AGE2664": constant_value(1000),
-    "QF_AGE65P": constant_value(1000),
-    "QF_PMR": constant_value(1000),
-    "QF_HANDICAP": constant_value(1000),
-    "QF_CADA": constant_value(400),
-    "QF_ASS": constant_value(100),
-    "QF_ETU": constant_value(300),
-    "QF_EMERAUDE": constant_value(300),
-    # https://www.strasbourg.eu/sortir-bouger-cultiver
-    # PA non imposable
-    "QF_EVASION": constant_value(300),
-    "QF_RSA": constant_value(300),
-    "QF_AGENT_CUS": constant_value(800),
-    "QF_AGENT_EMS": constant_value(800),
-    "QF_CE": constant_value(800),
-    "QF_CBW": constant_value(0),
-    "QF_CCS_TP": constant_value(921),
-    "QF_CCS_RA": constant_value(821),
-    "QF_CCS_RB": constant_value(500),
-}
+
+class LogAccessDict(dict):
+    def __init__(self, arg={}):
+        super(LogAccessDict, self).__init__(arg)
+        self.accesses = {}
+
+    def __getitem__(self, key):
+        if key not in self.accesses:
+            self.accesses[key] = 0
+        self.accesses[key] = self.accesses[key] + 1
+        return dict.__getitem__(self, key)
+
+
+ruler = lambda value: constant_value(10 * value)
+
+
+# ruler = lambda value: lambda v_min, v_max, size: np.random.randint(0, 10*value, size)
+def override_ruler(constant):
+    return lambda *args: ruler(constant)(*args)
+
+
+qftype_override = LogAccessDict(
+    {
+        "QF_MINEUR": override_ruler(700),
+        "QF_AGE418": override_ruler(1000),
+        "QF_AGE1925": override_ruler(1000),
+        "QF_AGE2664": override_ruler(1000),
+        "QF_AGE65P": override_ruler(1000),
+        "QF_PMR": override_ruler(1000),
+        "QF_HANDICAP": override_ruler(1000),
+        "QF_CADA": override_ruler(400),
+        "QF_ASS": override_ruler(100),
+        "QF_ETU": override_ruler(300),
+        "QF_EMERAUDE": override_ruler(300),
+        # https://www.strasbourg.eu/sortir-bouger-cultiver
+        # PA non imposable
+        "QF_EVASION": override_ruler(300),
+        "QF_RSA": override_ruler(300),
+        "QF_AGENT_CUS": override_ruler(800),
+        "QF_AGENT_EMS": override_ruler(800),
+        "QF_CE": override_ruler(800),
+        "QF_CBW": override_ruler(0),
+        "QF_CCS_TP": override_ruler(1000),
+        "QF_CCS_RA": override_ruler(1000),
+        "QF_CCS_RB": override_ruler(1000),
+    }
+)
 
 
 def determine_qf(individu_df, qfrules, caf_to_fiscal=None):
