@@ -2,6 +2,8 @@ import sys
 
 sys.path.append("../technique")
 from utils import determine_age, determine_qf, StrasbourgSurveyScenario, base_period
+from results import result_index, extract
+import numpy as np
 import pandas as pd
 
 
@@ -45,19 +47,26 @@ fields = {
 }
 
 
-def compute(tbs, df, categorie):
-    openfisca_output_variable = fields[categorie]
+def build_data(df, categorie, sample_count=1):
     product_df = df[df["Cours complet"] == categorie]
+
+    count = len(product_df)
+    sample_ids = np.repeat(list(range(sample_count)), count)
+    indiv_ids = np.tile(list(range(count)), sample_count)
+    sample_qfrule = np.tile(product_df.qfrule, sample_count)
+
     individu_df = pd.DataFrame(
         {
-            "famille_id": list(range(len(product_df))),
+            "famille_id": list(range(count * sample_count)),
         }
     )
 
     famille_df = pd.DataFrame(
         {
-            "qfrule": product_df.qfrule,
-            "strasbourg_centre_choregraphique_tarif": product_df.Tarif,
+            "qfrule": sample_qfrule,
+            "strasbourg_centre_choregraphique_tarif": np.tile(
+                product_df.Tarif, sample_count
+            ),
         }
     )
     determine_qf(famille_df)
@@ -71,38 +80,58 @@ def compute(tbs, df, categorie):
     individu_df["menage_id"] = individu_df.famille_id
     individu_df["menage_role_index"] = 0
 
-    data = dict(
-        input_data_frame_by_entity=dict(
-            individu=individu_df,
-            famille=famille_df,
-            menage=menage_df,
-            foyer_fiscal=foyerfiscaux_df,
-        )
-    )
-
-    scenario = StrasbourgSurveyScenario(tbs, data=data)
-
-    prix = scenario.simulation.calculate(openfisca_output_variable, base_period)
-    res_prix = pd.DataFrame(
+    base = pd.DataFrame(
         data={
+            "sample_id": sample_ids,
+            "individu_id": indiv_ids,
             "qf_caf": famille_df.qf_caf,
-            "res": (prix - product_df["Montant.facturé"]).abs() < 0.001,
-            "prix_input": product_df["Montant.facturé"],
-            "prix_output": prix,
+            "prix_input": np.tile(product_df["Montant.facturé"], sample_count),
         }
     )
-    return res_prix
+
+    return (
+        dict(
+            input_data_frame_by_entity=dict(
+                individu=individu_df,
+                famille=famille_df,
+                menage=menage_df,
+                foyer_fiscal=foyerfiscaux_df,
+            )
+        ),
+        base,
+    )
 
 
-def get_results(tbs):
+def compute(tbs, data, base, openfisca_output_variable, suffix=""):
+    scenario = StrasbourgSurveyScenario(tbs, data=data)
+    prix = scenario.simulation.calculate(openfisca_output_variable, base_period)
+
+    base["prix_output" + suffix] = prix
+    base["res" + suffix] = (base.prix_output - base.prix_input).abs() < 0.001
+    return base
+
+
+def get_results(tbs, sample_count=1, reform=None):
     df = get_df()
 
-    results = [compute(tbs, df, v) for v in fields]
-    return pd.DataFrame(
-        data={
-            "Direction": "Culture",
-            "Service": [v for v in fields],
-            "Recettes": [r.prix_output.sum() for r in results],
-            "Quantité": [r.prix_output.count() for r in results],
-        }
-    )
+    results = []
+    rows = []
+    output_field = "prix_output"
+    for v in fields:
+        openfisca_output_variable = fields[v]
+
+        (data, base) = build_data(df, v, sample_count)
+        res = compute(tbs, data, base, openfisca_output_variable)
+        row = ["Culture", v]
+        count, value = extract(res, output_field)
+        row.extend([count["mean"], count["count"]])
+        row.extend(value)
+
+        if reform:
+            r_res = compute(reform, data, base, openfisca_output_variable, "_r")
+            _, r_value = extract(r_res, output_field)
+            row.extend(r_value)
+
+        rows.append(row)
+
+    return pd.DataFrame(rows, columns=result_index[0 : len(rows[0])])

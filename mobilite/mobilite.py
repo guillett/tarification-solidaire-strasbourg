@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import numpy as np
 import os
 import pandas as pd
+from results import result_index, extract
 
 load_dotenv()
 from utils import determine_age, determine_qf, StrasbourgSurveyScenario, base_period
@@ -73,6 +74,7 @@ def build_data(df, res_df, sample_count=1):
         }
     )
     determine_qf(sample_famille_df)
+
     sample_menage_df = pd.DataFrame(
         {
             "eurometropole_strasbourg_tarification_solidaire_transport_eligibilite_geographique": np.ones(
@@ -138,6 +140,7 @@ def compute_result(scenario, complement_df, recette_base, compens_constant):
             "pu_fichier": complement_df.pu_fichier,
             "pu_calc_base": complement_df.pu_calc_base,
             "tp_base": complement_df.tp_base,
+            "quantité": 12,
         }
     )
     sample_res["ecart"] = sample_res.pu_calc_ht - sample_res.pu_fichier
@@ -156,7 +159,7 @@ def compute_result(scenario, complement_df, recette_base, compens_constant):
     return (sample_res, sample_recette)
 
 
-def get_results(tbs):
+def get_results(tbs, sample_count=1, reform=None):
     df, compens_constant = get_df()
     rdf = pd.DataFrame(
         data={
@@ -165,14 +168,22 @@ def get_results(tbs):
             "tp": df.PU * 0,
         }
     )
-    data, complement_df = build_data(df, rdf)
+    data, complement_df = build_data(df, rdf, sample_count)
     scenario = StrasbourgSurveyScenario(tbs, data=data)
     (res, recettes) = compute_result(scenario, complement_df, 0, compens_constant)
-    return pd.DataFrame(
-        {
-            "Direction": "Mobilité",
-            "Service": ["Plein tarif", "Réduit"],
-            "Recettes": 12 * res.groupby("reduit").pu_calc_ht.sum(),
-            "Quantité": 12 * res.groupby("reduit").pu_calc_ht.count(),
-        }
-    ).reset_index(drop=True)
+    field = "cout"
+    res[field] = res.pu_calc_ht * 12
+    count, value = extract(res, field, "quantité")
+
+    row = ["Mobilité", "Transports en commun", count["mean"], count["count"], *value]
+
+    if reform:
+        reform_scenario = StrasbourgSurveyScenario(reform, data=data)
+        (r_res, r_recettes) = compute_result(
+            reform_scenario, complement_df, 0, compens_constant
+        )
+        r_res[field] = r_res.pu_calc_ht * 12
+        r_count, r_value = extract(r_res, field, "quantité")
+        row.extend(r_value)
+
+    return pd.DataFrame([row], columns=result_index[0 : len(row)])

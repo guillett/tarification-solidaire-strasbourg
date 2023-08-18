@@ -2,6 +2,7 @@ import sys
 
 sys.path.append("../technique")
 from utils import determine_age, determine_qf, StrasbourgSurveyScenario, base_period
+from results import result_index, extract
 import numpy as np
 import pandas as pd
 
@@ -88,34 +89,37 @@ fields = {
 }
 
 
-def compute(tbs, df, categorie):
+def build_data(df, categorie, sample_count=1):
     champ_pu = fields[categorie]["champ_pu"]
     openfisca_input_variable = fields[categorie]["openfisca_input_variable"]
-    openfisca_output_variable = fields[categorie]["openfisca_output_variable"]
 
     product_df = df[~df[categorie].isna()]
+    sample_ids = np.repeat(list(range(sample_count)), product_df.quantité.sum())
+    inc = lambda s: np.tile(np.repeat(s, product_df.quantité), sample_count)
     individu_df = pd.DataFrame(
         {
-            "famille_id": list(range(len(product_df))),
-            "agerule": product_df.age,
-            "taux_incapacite": np.where(
-                product_df.qfrule.str.contains("HANDICAP"), 0.8, 0
+            "famille_id": list(range(product_df.quantité.sum() * sample_count)),
+            "agerule": inc(product_df.age),
+            "taux_incapacite": inc(
+                np.where(product_df.qfrule.str.contains("HANDICAP"), 0.8, 0)
             ),
-            "ass": product_df.qfrule.str.contains("ASS"),
-            "evasion": product_df.qfrule.str.contains("EVASION"),
-            "cada": product_df.qfrule.str.contains("CADA"),
-            "etudiant": product_df.qfrule.str.contains("ETU"),
-            openfisca_input_variable: product_df.quantité,
+            "ass": inc(product_df.qfrule.str.contains("ASS")),
+            "evasion": inc(product_df.qfrule.str.contains("EVASION")),
+            "cada": inc(product_df.qfrule.str.contains("CADA")),
+            "etudiant": inc(product_df.qfrule.str.contains("ETU")),
+            openfisca_input_variable: inc(product_df.quantité),
         }
     )
     determine_age(individu_df)
 
     famille_df = pd.DataFrame(
         {
-            "qfrule": product_df.qfrule,
-            "rsa": product_df.qfrule.str.contains("RSA"),
-            "agent_ems": product_df.qfrule.str.contains("CUS")
-            + product_df.qfrule.str.contains("EMS"),
+            "qfrule": inc(product_df.qfrule),
+            "rsa": inc(product_df.qfrule.str.contains("RSA")),
+            "agent_ems": inc(
+                product_df.qfrule.str.contains("CUS")
+                + product_df.qfrule.str.contains("EMS")
+            ),
         }
     )
     determine_qf(famille_df)
@@ -129,44 +133,58 @@ def compute(tbs, df, categorie):
     individu_df["menage_id"] = individu_df.famille_id
     individu_df["menage_role_index"] = 0
 
-    data = dict(
-        input_data_frame_by_entity=dict(
-            individu=individu_df,
-            famille=famille_df,
-            menage=menage_df,
-            foyer_fiscal=foyerfiscaux_df,
-        )
-    )
-
-    scenario = StrasbourgSurveyScenario(tbs, data=data)
-
-    prix = scenario.simulation.calculate(openfisca_output_variable, base_period)
-    res_prix = pd.DataFrame(
+    res = pd.DataFrame(
         data={
-            "prestation": product_df.prestation,
-            "qfrule": product_df.qfrule,
+            "sample_id": sample_ids,
+            "prestation": inc(product_df.prestation),
+            "qfrule": inc(product_df.qfrule),
             "qf_caf": famille_df.qf_caf,
             "age": individu_df.age,
-            "res": (prix - product_df[champ_pu]).abs() < 0.001,
-            "prix_input": product_df[champ_pu],
-            "prix_output": prix,
-            "quantité": product_df.quantité,
+            "prix_input": inc(product_df[champ_pu]),
+            "quantité": 1,
         }
     )
-    return res_prix
+
+    return (
+        dict(
+            input_data_frame_by_entity=dict(
+                individu=individu_df,
+                famille=famille_df,
+                menage=menage_df,
+                foyer_fiscal=foyerfiscaux_df,
+            )
+        ),
+        res,
+    )
 
 
-def get_results(tbs):
+def compute(tbs, data, res, openfisca_output_variable, suffix=""):
+    scenario = StrasbourgSurveyScenario(tbs, data=data)
+    prix = scenario.simulation.calculate(openfisca_output_variable, base_period)
+    prix_field = "prix" + suffix
+    res[prix_field] = prix
+    res["res" + suffix] = (res[prix_field] - res.prix_input).abs() < 0.001
+    return res
+
+
+def get_results(tbs, sample_count=1, reform=None):
     df = get_df()
 
-    get_total = lambda r: sum(r.prix_output * r.quantité)
-    results = [compute(tbs, df, v) for v in fields]
+    get_total = lambda r: sum(r.prix * r.quantité)
+    rows = []
+    for v in fields:
+        data, res = build_data(df, v, sample_count)
+        openfisca_output_variable = fields[v]["openfisca_output_variable"]
+        compute(tbs, data, res, openfisca_output_variable)
 
-    return pd.DataFrame(
-        data={
-            "Direction": "Sport",
-            "Service": [v for v in fields],
-            "Recettes": [get_total(r) for r in results],
-            "Quantité": [r.quantité.sum() for r in results],
-        }
-    )
+        count, value = extract(res, "prix")
+        row = ["Sport", v]
+        row.extend([count["mean"], count["count"]])
+        row.extend(value)
+        if reform:
+            compute(reform, data, res, openfisca_output_variable, "_r")
+            _, value = extract(res, "prix_r")
+            row.extend(value)
+        rows.append(row)
+
+    return pd.DataFrame(rows, columns=result_index[0 : len(rows[0])])

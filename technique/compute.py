@@ -15,7 +15,7 @@ from scenario import StrasbourgSurveyScenario, base_period
 from utils import *
 
 
-class gristSimulationReform(Reform):
+class mobiliteGristSimulationReform(Reform):
     name = "Fusionne les trois premières tranches"
 
     def __init__(self, tbs, steps):
@@ -91,7 +91,7 @@ def compute(scenario, qf):
                 ]
             )
 
-    r = gristSimulationReform(base, steps)
+    r = mobiliteGristSimulationReform(base, steps)
 
     count = int(sum(df.quantité))
     sample_count = 40

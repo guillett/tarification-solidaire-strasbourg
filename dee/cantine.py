@@ -2,6 +2,7 @@ import sys
 
 sys.path.append("../technique")
 from utils import StrasbourgSurveyScenario, base_period, get_data, determine_qf
+from results import result_index, extract
 
 import numpy as np
 import pandas as pd
@@ -35,9 +36,23 @@ def get_df():
     )
 
 
-def get_results(tbs):
-    df = get_df()
+fields = {
+    "Repas standard": {
+        "cout": "strasbourg_metropole_cout_cantine_individu",
+        "nombre": "strasbourg_metropole_nombre_repas_cantine",
+    },
+    "Repas végétarien": {
+        "cout": "strasbourg_metropole_cout_cantine_individu_repas_vegetarien",
+        "nombre": "strasbourg_metropole_nombre_repas_cantine_vegetarien",
+    },
+    "Repas panier": {
+        "cout": "strasbourg_metropole_cout_cantine_individu_repas_panier",
+        "nombre": "strasbourg_metropole_nombre_repas_cantine_panier",
+    },
+}
 
+
+def build_data(df, sample_count):
     coef_sans_resa = 1
     raw_df = pd.pivot_table(
         df,
@@ -47,34 +62,41 @@ def get_results(tbs):
         fill_value=0,
         aggfunc=np.sum,
     )
+    raw_df["strasbourg_metropole_nombre_repas_cantine"] = (
+        raw_df["Standard avec résa"]
+        + raw_df["Halal avec résa"]
+        + raw_df["Sans Porc avec résa"]
+        + coef_sans_resa
+        * (
+            raw_df["Standard sans résa"]
+            + raw_df["Halal sans résa"]
+            + raw_df["Sans Porc sans résa"]
+        )
+    )
+    raw_df["strasbourg_metropole_nombre_repas_cantine_vegetarien"] = (
+        raw_df["Végétarien avec résa"] + coef_sans_resa * raw_df["Végétarien sans résa"]
+    )
+    raw_df["strasbourg_metropole_nombre_repas_cantine_panier"] = raw_df[
+        "Panier avec résa"
+    ] + coef_sans_resa * (
+        raw_df["Panier sans résa"] if "Panier sans résa" in raw_df else 0
+    )
+    raw_df["qfrule"] = ["QF==" + str(q) for (f, p, q) in raw_df.index]
+
+    np.tile(df.QF.astype("str"), sample_count)
+
     individu_df = pd.DataFrame(
         {
-            "famille_id": list(range(len(raw_df))),
-            "strasbourg_metropole_nombre_repas_cantine": (
-                raw_df["Standard avec résa"]
-                + raw_df["Halal avec résa"]
-                + raw_df["Sans Porc avec résa"]
-                + coef_sans_resa
-                * (
-                    raw_df["Standard sans résa"]
-                    + raw_df["Halal sans résa"]
-                    + raw_df["Sans Porc sans résa"]
-                )
-            ),
-            "strasbourg_metropole_nombre_repas_cantine_vegetarien": (
-                raw_df["Végétarien avec résa"]
-                + coef_sans_resa * raw_df["Végétarien sans résa"]
-            ),
-            "strasbourg_metropole_nombre_repas_cantine_panier": (
-                raw_df["Panier avec résa"]
-                + coef_sans_resa
-                * (raw_df["Panier sans résa"] if "Panier sans résa" in raw_df else 0)
-            ),
+            "famille_id": list(range(len(raw_df) * sample_count)),
         }
     )
+    for f in fields:
+        fn = fields[f]["nombre"]
+        individu_df[fn] = np.tile(raw_df[fn], sample_count)
+
     famille_df = pd.DataFrame(
         {
-            "qfrule": ["QF==" + str(q) for (f, p, q) in raw_df.index],
+            "qfrule": np.tile(raw_df.qfrule, sample_count),
         }
     )
     determine_qf(famille_df)
@@ -88,6 +110,8 @@ def get_results(tbs):
     individu_df["menage_id"] = individu_df.famille_id
     individu_df["menage_role_index"] = 0
 
+    sample_ids = np.repeat(list(range(sample_count)), len(raw_df))
+
     data = dict(
         input_data_frame_by_entity=dict(
             individu=individu_df,
@@ -96,40 +120,42 @@ def get_results(tbs):
             foyer_fiscal=foyerfiscaux_df,
         )
     )
+    return data, sample_ids
+
+
+def get_results(tbs, sample_count=2, reform=None):
+    df = get_df()
+    data, sample_ids = build_data(df, sample_count)
+    rows = []
 
     scenario = StrasbourgSurveyScenario(tbs, data=data)
+    if reform:
+        r_scenario = StrasbourgSurveyScenario(reform, data=data)
+    res = pd.DataFrame({"sample_id": sample_ids})
+    for n in fields:
+        row = ["DEE", n]
+        prix_field = "prix_" + n
+        nombre_field = "nombre_" + n
+        res[prix_field] = scenario.simulation.calculate(fields[n]["cout"], base_period)
+        res[nombre_field] = scenario.simulation.calculate(
+            fields[n]["nombre"], base_period
+        )
+        count, value = extract(res, prix_field, nombre_field)
+        row.extend([count["mean"], count["count"]])
+        row.extend(value)
 
-    var = {
-        "Repas standard": {
-            "cout": "strasbourg_metropole_cout_cantine_individu",
-            "nombre": "strasbourg_metropole_nombre_repas_cantine",
-        },
-        "Repas végétarien": {
-            "cout": "strasbourg_metropole_cout_cantine_individu_repas_vegetarien",
-            "nombre": "strasbourg_metropole_nombre_repas_cantine_vegetarien",
-        },
-        "Repas panier": {
-            "cout": "strasbourg_metropole_cout_cantine_individu_repas_panier",
-            "nombre": "strasbourg_metropole_nombre_repas_cantine_panier",
-        },
-    }
+        if reform:
+            prix_field = "r_prix_" + n
+            nombre_field = "r_nombre_" + n
+            res[prix_field] = r_scenario.simulation.calculate(
+                fields[n]["cout"], base_period
+            )
+            res[nombre_field] = r_scenario.simulation.calculate(
+                fields[n]["nombre"], base_period
+            )
+            count, value = extract(res, prix_field, nombre_field)
+            row.extend(value)
 
-    res_cout = pd.DataFrame(
-        data={
-            n: scenario.simulation.calculate(var[n]["cout"], base_period) for n in var
-        }
-    )
+        rows.append(row)
 
-    res_nombre = pd.DataFrame(
-        data={
-            n: scenario.simulation.calculate(var[n]["nombre"], base_period) for n in var
-        }
-    )
-
-    return pd.DataFrame(
-        data={
-            "Direction": "DEE",
-            "Recettes": res_cout.sum(),
-            "Quantité": res_nombre.sum(),
-        }
-    ).reset_index(names="Service")
+    return pd.DataFrame(rows, columns=result_index[0 : len(rows[0])])

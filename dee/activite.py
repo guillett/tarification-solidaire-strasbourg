@@ -2,6 +2,7 @@ import sys
 
 sys.path.append("../technique")
 from utils import determine_qf, StrasbourgSurveyScenario, base_period, get_data
+from results import result_index, extract
 
 import numpy as np
 from openfisca_france import CountryTaxBenefitSystem
@@ -55,15 +56,15 @@ def get_dfs():
     return df_apm_usage, df_al
 
 
-def build_data(df):
+def build_data(df, sample_count):
     individu_df = pd.DataFrame(
         {
-            "famille_id": list(range(len(df))),
+            "famille_id": list(range(len(df) * sample_count)),
         }
     )
     famille_df = pd.DataFrame(
         {
-            "qfrule": "QF==" + df.QF.astype("str"),
+            "qfrule": "QF==" + np.tile(df.QF.astype("str"), sample_count),
         }
     )
     determine_qf(famille_df)
@@ -94,33 +95,78 @@ al_fields = {
 }
 
 
-def get_results(tbs):
+def get_results(tbs, sample_count=1, reform=None):
     df_apm_usage, df_al = get_dfs()
+    rows = []
 
-    data_apm = build_data(df_apm_usage)
+    data_apm = build_data(df_apm_usage, sample_count)
+    apm_sample_ids = np.repeat(list(range(sample_count)), len(df_apm_usage))
     scenario_apm = StrasbourgSurveyScenario(tbs, data=data_apm)
-    prix = scenario_apm.simulation.calculate(
-        "strasbourg_periscolaire_maternelle_prix", base_period
+    res_apm = pd.DataFrame(
+        {
+            "sample_id": apm_sample_ids,
+            "nombre": np.tile(df_apm_usage.MOIS, sample_count),
+        }
     )
-    total_apm = (prix * df_apm_usage.MOIS).sum()
-    total_apm_count = (1 * df_apm_usage.MOIS).sum()
 
-    data_al = build_data(df_al)
+    def compute_apm(s, res, field):
+        prix = s.simulation.calculate(
+            "strasbourg_periscolaire_maternelle_prix", base_period
+        )
+        res[field] = prix
+        res["cout"] = res[field] * res.nombre
+
+    compute_apm(scenario_apm, res_apm, "prix")
+
+    row = ["DEE", "APM"]
+    apm_count, apm_value = extract(res_apm, "cout", "nombre")
+    row.extend([apm_count["mean"], apm_count["count"]])
+    row.extend(apm_value)
+    if reform:
+        r_scenario_apm = StrasbourgSurveyScenario(reform, data=data_apm)
+        compute_apm(r_scenario_apm, res_apm, "prix_r")
+        _, r_apm_value = extract(res_apm, "cout", "nombre")
+        row.extend(r_apm_value)
+
+    rows.append(row)
+
+    data_al = build_data(df_al, sample_count)
+    al_sample_ids = np.repeat(list(range(sample_count)), len(df_al))
     scenario_al = StrasbourgSurveyScenario(tbs, data=data_al)
     res_al = pd.DataFrame(
         data={
-            v: scenario_al.simulation.calculate(al_fields[v], base_period)
-            for v in al_fields
+            "sample_id": al_sample_ids,
+            "nombre": np.tile(df_al.NOMBRE, sample_count),
+            "service": np.tile(df_al.SERVICE2, sample_count),
         }
     )
-    idx, cols = pd.factorize(df_al.SERVICE2)
-    df_al["PRIX"] = res_al.reindex(cols, axis=1).to_numpy()[np.arange(len(res_al)), idx]
-    df_al["Recettes"] = df_al.PRIX * df_al.NOMBRE
-    df_al["Quantité"] = 1 * df_al.NOMBRE
-    res = df_al[["Recettes", "Quantité", "SERVICE2"]].groupby("SERVICE2").sum()
+    for v in al_fields:
+        res_al[v] = scenario_al.simulation.calculate(al_fields[v], base_period)
+    idx, cols = pd.factorize(res_al.service)
+    res_al["prix"] = res_al.reindex(cols, axis=1).to_numpy()[
+        np.arange(len(res_al)), idx
+    ]
+    res_al["cout"] = res_al.prix * res_al.nombre
+    if reform:
+        r_scenario_al = StrasbourgSurveyScenario(reform, data=data_al)
+        for v in al_fields:
+            res_al[v + "_r"] = r_scenario_al.simulation.calculate(
+                al_fields[v], base_period
+            )
+            r_idx, r_cols = pd.factorize(res_al.service + "_r")
+            res_al["prix_r"] = res_al.reindex(r_cols, axis=1).to_numpy()[
+                np.arange(len(res_al)), r_idx
+            ]
+            res_al["cout_r"] = res_al.prix_r * res_al.nombre
 
-    res.loc["APM"] = [total_apm, total_apm_count]
-    res.index.name = "Service"
+    for n, df in res_al.groupby("service"):
+        row = ["DEE", n]
+        count, value = extract(df, "cout", "nombre")
+        row.extend([count["mean"], count["count"]])
+        row.extend(value)
+        if reform:
+            _, r_value = extract(df, "cout_r", "nombre")
+            row.extend(r_value)
+        rows.append(row)
 
-    res["Direction"] = "DEE"
-    return res.sort_values("Recettes", ascending=False).reset_index()
+    return pd.DataFrame(rows, columns=result_index[0 : len(rows[0])])
