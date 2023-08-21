@@ -99,7 +99,6 @@ def compute(scenario, qf):
     sample_qfrule = np.tile(np.repeat(df.QF, df.quantité), sample_count)
     sample_individu_df = pd.DataFrame(
         {
-            "sample_id": sample_ids,
             "famille_id": list(range(count * sample_count)),
             "agerule": np.tile(np.repeat(df.AGE, df.quantité), sample_count),
             "taux_incapacite": np.tile(
@@ -115,10 +114,11 @@ def compute(scenario, qf):
 
     sample_famille_df = pd.DataFrame(
         {
+            "sample_id": sample_ids,
             "qfrule": sample_qfrule,
         }
     )
-    determine_qf(sample_famille_df, unif_qf, caf_fiscal if qf == "fiscal" else None)
+    determine_qf(sample_famille_df)
 
     sample_menage_df = pd.DataFrame(
         {
