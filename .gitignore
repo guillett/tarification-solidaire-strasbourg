@@ -1,5 +1,6 @@
 *.dat
 .env
 .ipynb_checkpoints
+mapping_qf_caf_ems.pickle
 *.profile
 __pycache__

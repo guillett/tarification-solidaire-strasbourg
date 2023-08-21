@@ -63,6 +63,7 @@ def build_data(df, categorie, sample_count=1):
 
     famille_df = pd.DataFrame(
         {
+            "sample_id": sample_ids,
             "qfrule": sample_qfrule,
             "strasbourg_centre_choregraphique_tarif": np.tile(
                 product_df.Tarif, sample_count

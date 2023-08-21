@@ -10,12 +10,10 @@ def constant_value(constant):
 
 
 def dyn_rules(func, f_min=0, f_max=1200):
-    def rule(text, override={}):
+    def rule(text):
         def values(size):
             (v_min, v_max, type_name) = get_values(text)
-            if type_name in override:
-                return override[type_name](v_min, v_max, size)
-            elif type_name not in ["QF", "AGE"]:
+            if type_name not in ["QF", "AGE"]:
                 warnings.warn(f"{type_name} missing…")
             if v_min == None:
                 v_min = f_min

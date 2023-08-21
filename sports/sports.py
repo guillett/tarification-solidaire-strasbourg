@@ -114,6 +114,7 @@ def build_data(df, categorie, sample_count=1):
 
     famille_df = pd.DataFrame(
         {
+            "sample_id": sample_ids,
             "qfrule": inc(product_df.qfrule),
             "rsa": inc(product_df.qfrule.str.contains("RSA")),
             "agent_ems": inc(

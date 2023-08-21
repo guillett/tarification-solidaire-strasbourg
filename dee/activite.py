@@ -57,6 +57,7 @@ def get_dfs():
 
 
 def build_data(df, sample_count):
+    sample_ids = np.repeat(list(range(sample_count)), len(df))
     individu_df = pd.DataFrame(
         {
             "famille_id": list(range(len(df) * sample_count)),
@@ -64,6 +65,7 @@ def build_data(df, sample_count):
     )
     famille_df = pd.DataFrame(
         {
+            "sample_id": sample_ids,
             "qfrule": "QF==" + np.tile(df.QF.astype("str"), sample_count),
         }
     )
@@ -104,7 +106,7 @@ def get_results(tbs, sample_count=1, reform=None):
     scenario_apm = StrasbourgSurveyScenario(tbs, data=data_apm)
     res_apm = pd.DataFrame(
         {
-            "sample_id": apm_sample_ids,
+            "sample_id": data_apm["input_data_frame_by_entity"]["famille"].sample_id,
             "nombre": np.tile(df_apm_usage.MOIS, sample_count),
         }
     )
@@ -131,11 +133,10 @@ def get_results(tbs, sample_count=1, reform=None):
     rows.append(row)
 
     data_al = build_data(df_al, sample_count)
-    al_sample_ids = np.repeat(list(range(sample_count)), len(df_al))
     scenario_al = StrasbourgSurveyScenario(tbs, data=data_al)
     res_al = pd.DataFrame(
         data={
-            "sample_id": al_sample_ids,
+            "sample_id": data_al["input_data_frame_by_entity"]["famille"].sample_id,
             "nombre": np.tile(df_al.NOMBRE, sample_count),
             "service": np.tile(df_al.SERVICE2, sample_count),
         }

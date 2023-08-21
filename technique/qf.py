@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from rules import get_values, dyn_rules, constant_value
+import warnings
 
 
 def caf_fiscal(a):
@@ -8,23 +9,34 @@ def caf_fiscal(a):
 
 
 qf_min = 0
-qf_max = 1200
+qf_max = 4000
 
 import os
 
-fake_mapping_file = "fake_mapping_qf_caf_ems.pickle"
-if os.path.exists(fake_mapping_file):
-    qf_mapping = pd.read_pickle(fake_mapping_file)
+mapping_file = "fake_mapping_qf_caf_ems.pickle"
+mapping_file = "mapping_qf_caf_ems.pickle"
+if os.path.exists(mapping_file):
+    qf_mapping = pd.read_pickle(mapping_file)
 else:
-    qf_mapping = pd.read_pickle(os.path.join("..", fake_mapping_file))
+    qf_mapping = pd.read_pickle(os.path.join("..", mapping_file))
 
 
 def real_qf_df(mi, ma, s):
-    items = qf_mapping[(qf_mapping.CAF >= mi) * (qf_mapping.CAF < ma)]
-    if len(items):
-        return items.sample(s, replace=True)
-    else:
-        return unif_qf_df(mi, ma, s)
+    lims = [0]
+    for l in lims:
+        items = qf_mapping[(qf_mapping.CAF >= mi - l) * (qf_mapping.CAF < ma + l)]
+        n = len(items)
+        if n:
+            if l != 0:
+                warnings.warn(f"Enlarged interval [{mi}-{l}, {ma}+{l}[…")
+            if s > n:
+                pass
+                # TODO
+                # warnings.warn(f"Concentring data… n={n} but s={s}")
+            # TODO
+            # Explicit replacement
+            return items.sample(s, replace=True)
+    raise Exception("What a mess!")
 
 
 def fake_formula(caf):
@@ -54,17 +66,6 @@ def constant_qf_df(mi, ma, s):
 qfrules_constant = dyn_rules(lambda mi, ma, s: constant_qf_df, qf_min, qf_max)
 qfrules = real_qf  # unif_qf#qfrules_constant
 
-ruler = lambda value: constant_value(10 * value)
-
-
-# ruler = lambda value: lambda v_min, v_max, size: np.random.randint(0, 10*value, size)
-def override_ruler(constant):
-    def fn(*args):
-        v = ruler(constant)(*args)
-        return pd.DataFrame(data={"CAF": v, "EMS": v})
-
-    return fn
-
 
 class LogAccessDict(dict):
     def __init__(self, arg={}):
@@ -90,36 +91,36 @@ finally:
 qftype_override = LogAccessDict(
     {
         # Mobilité
-        "QF_AGE418": override_ruler(1000),
-        "QF_AGE1925": override_ruler(1000),
-        "QF_AGE2664": override_ruler(1000),
-        "QF_AGE65P": override_ruler(1000),
-        "QF_PMR": override_ruler(1000),
-        "QF_EMERAUDE": override_ruler(300),
+        "QF_AGE418": "QF",
+        "QF_AGE1925": "QF",
+        "QF_AGE2664": "QF",
+        "QF_AGE65P": "QF<=3000",
+        "QF_PMR": "QF<=2000",
+        "QF_EMERAUDE": "QF<=2000",
         # Piscine
         # via mapping QF CAF/EMS sur les données individuelles CTS
-        "QF_HANDICAP": override_ruler(1000),
-        "QF_CADA": override_ruler(0),
+        "QF_HANDICAP": "QF",
+        "QF_CADA": "QF<=2000",
         # 0 pour QF EMS
-        "QF_ASS": override_ruler(0),
+        "QF_ASS": "QF<=200",
         # Pas de nouvelles du CROUS/CNOUS
-        "QF_ETU": override_ruler(300),
+        "QF_ETU": "QF",
         # https://www.strasbourg.eu/sortir-bouger-cultiver
         # PA non imposable
-        "QF_EVASION": override_ruler(300),
+        "QF_EVASION": "QF<=1000",
         # 0 pour QF EMS
-        "QF_RSA": override_ruler(300),
+        "QF_RSA": "QF<=500",
         # QF important
-        "QF_AGENT_CUS": override_ruler(1500),
-        "QF_AGENT_EMS": override_ruler(1500),
-        "QF_MINEUR": override_ruler(1500),
-        "QF_CE": override_ruler(1500),
-        "QF_CBW": override_ruler(0),
+        "QF_AGENT_CUS": "1000<=QF<=3000",
+        "QF_AGENT_EMS": "1000<=QF<=3000",
+        "QF_MINEUR": "QF",
+        "QF_CE": "1500<=QF<=3000",
+        "QF_CBW": "QF<=300",
         # CCS
-        # À voir avec Johanne ?
-        "QF_CCS_TP": override_ruler(1000),
-        "QF_CCS_RA": override_ruler(1000),
-        "QF_CCS_RB": override_ruler(1000),
+        # À voir avec la CAF
+        "QF_CCS_TP": "QF",
+        "QF_CCS_RA": "QF<=3000",
+        "QF_CCS_RB": "QF<=2000",
     }
 )
 
@@ -127,10 +128,16 @@ qftype_override = LogAccessDict(
 def determine_qf(df):
     df["qf_caf"] = 0
     df["qf_fiscal"] = 0
-    qf_groups = df.groupby(by=["qfrule"]).groups
-
-    for key in qf_groups:
-        indexes_in_group = qf_groups[key]
-        v = qfrules(key, qftype_override)(len(indexes_in_group))
-        df.loc[indexes_in_group, "qf_caf"] = v.CAF.values
-        df.loc[indexes_in_group, "qf_fiscal"] = v.EMS.values
+    qf_groups = df.groupby(by=["sample_id", "qfrule"]).groups
+    for sample, key in qf_groups:
+        try:
+            indexes_in_group = qf_groups[(sample, key)]
+            rule = key if key not in qftype_override else qftype_override[key]
+            n = len(indexes_in_group)
+            v = qfrules(rule)(n)
+        except Exception as e:
+            warnings.warn(f"Bogus rule {rule} for {n} items.")
+            v = unif_qf(rule)(n)
+        finally:
+            df.loc[indexes_in_group, "qf_caf"] = v.CAF.values
+            df.loc[indexes_in_group, "qf_fiscal"] = v.EMS.values

@@ -1,10 +1,10 @@
 #!/bin/zsh
 
-set +e
+set -e
 
 for i in **/*.ipynb
 do
-    jupyter execute "$i"
+    # jupyter execute "$i"
     # if [[ $? -ne 0 ]]; then
     #     echo $i
     #     break

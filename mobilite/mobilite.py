@@ -70,6 +70,7 @@ def build_data(df, res_df, sample_count=1):
 
     sample_famille_df = pd.DataFrame(
         {
+            "sample_id": sample_ids,
             "qfrule": sample_qfrule,
         }
     )

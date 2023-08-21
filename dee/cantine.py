@@ -96,6 +96,7 @@ def build_data(df, sample_count):
 
     famille_df = pd.DataFrame(
         {
+            "sample_id": np.repeat(list(range(sample_count)), len(raw_df)),
             "qfrule": np.tile(raw_df.qfrule, sample_count),
         }
     )
@@ -110,8 +111,6 @@ def build_data(df, sample_count):
     individu_df["menage_id"] = individu_df.famille_id
     individu_df["menage_role_index"] = 0
 
-    sample_ids = np.repeat(list(range(sample_count)), len(raw_df))
-
     data = dict(
         input_data_frame_by_entity=dict(
             individu=individu_df,
@@ -120,18 +119,20 @@ def build_data(df, sample_count):
             foyer_fiscal=foyerfiscaux_df,
         )
     )
-    return data, sample_ids
+    return data
 
 
 def get_results(tbs, sample_count=2, reform=None):
     df = get_df()
-    data, sample_ids = build_data(df, sample_count)
+    data = build_data(df, sample_count)
     rows = []
 
     scenario = StrasbourgSurveyScenario(tbs, data=data)
     if reform:
         r_scenario = StrasbourgSurveyScenario(reform, data=data)
-    res = pd.DataFrame({"sample_id": sample_ids})
+    res = pd.DataFrame(
+        {"sample_id": data["input_data_frame_by_entity"]["famille"].sample_id}
+    )
     for n in fields:
         row = ["DEE", n]
         prix_field = "prix_" + n
