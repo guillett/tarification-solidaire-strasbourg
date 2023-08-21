@@ -85,6 +85,51 @@ class CEReform(Reform):
         self.modify_parameters(modifier_function=modify_ce_parameters)
 
 
+class StatutReform(Reform):
+    def apply(self):
+        def modify_ce_parameters(local_parameters):
+            Ps = local_parameters.communes.strasbourg
+            Pccs = Ps.centre_choregraphique
+            Pcons = Ps.conservatoire
+            Pcts = local_parameters.metropoles.strasbourg.tarification_solidaire
+            Ppat = Ps.patinoire
+            Ppis = Ps.piscine
+            reductions= [
+                # CCS
+                (Pccs.eveil.TP, [Pccs.eveil.RA, Pccs.eveil.RB]),
+                (Pccs.enfant._1_cours.TP, [Pccs.enfant._1_cours.RA, Pccs.enfant._1_cours.RB]),
+                (Pccs.enfant._2_cours.TP, [Pccs.enfant._2_cours.RA, Pccs.enfant._2_cours.RB]),
+                (Pccs.enfant._3_cours.TP, [Pccs.enfant._3_cours.RA, Pccs.enfant._3_cours.RB]),
+                (Pccs.enfant._4_cours.TP, [Pccs.enfant._4_cours.RA, Pccs.enfant._4_cours.RB]),
+                (Pccs.adulte._1_cours.TP, [Pccs.adulte._1_cours.RA, Pccs.adulte._1_cours.RB]),
+                (Pccs.adulte._2_cours.TP, [Pccs.adulte._2_cours.RA, Pccs.adulte._2_cours.RB]),
+                (Pccs.adulte._3_cours.TP, [Pccs.adulte._3_cours.RA, Pccs.adulte._3_cours.RB]),
+                (Pccs.adulte._4_cours.TP, [Pccs.adulte._4_cours.RA, Pccs.adulte._4_cours.RB]),
+                (Pccs.adulte._1_cours_trimestre.TP, [Pccs.adulte._1_cours_trimestre.RA, Pccs.adulte._1_cours_trimestre.RB]),
+                # Conservatoire
+                (Pcons.traditionnel.habitant_ems.enfant_12, [Pcons.traditionnel.agent_ems.enfant_12]),
+                # CTS
+                (Pcts.bareme, [Pcts.bareme_reduit, Pcts.bareme_emeraude]),
+                # Patinoire
+                (Ppat.entree_unitaire.bareme_qf, [Ppat.entree_unitaire.bareme_qf_reduit]),
+                (Ppat._10_entrees.bareme_qf, [Ppat._10_entrees.bareme_qf_reduit]),
+                # # Piscine
+                (Ppis.abonnement_annuel.bareme, [Ppis.abonnement_annuel.bareme_reduit]),
+                (Ppis.entree_unitaire.bareme_qf, [Ppis.entree_unitaire.bareme_qf_reduit]),
+                (Ppis._10_entrees.bareme_qf, [Ppis._10_entrees.bareme_qf_reduit]),
+                ]
+            for (dest, origins) in reductions:
+                for origin in origins:
+                    assert origin.brackets
+                    assert dest.brackets
+                    origin.brackets = dest.brackets
+
+            return local_parameters
+
+        self.modify_parameters(modifier_function=modify_ce_parameters)
+
+
+
 class gristSimulationReform(Reform):
     def __init__(self, tbs):
         GRIST_DOC_ID = os.getenv("GRIST_DOC_ID")
