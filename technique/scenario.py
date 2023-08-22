@@ -142,7 +142,7 @@ class StatutReform(Reform):
                     [Pcons.traditionnel.agent_ems.enfant_12],
                 ),
                 # CTS
-                (Pcts.bareme, [Pcts.bareme_reduit, Pcts.bareme_emeraude]),
+                (Pcts.bareme, [Pcts.bareme_reduit, Pcts.bareme_emeraude, Pcts.annuel.bareme, Pcts.annuel.bareme_reduit]),
                 # Patinoire
                 (
                     Ppat.entree_unitaire.bareme_qf,
