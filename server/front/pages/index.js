@@ -21,7 +21,7 @@ export default function Home({ domain }) {
     { name: 'DEE', value: '' },
     { name: 'Culture - CRR', value: 'cons' },//*/
   ]
-  const [email, setEmail] = useState('@strasbourg.eu')
+  const [email, setEmail] = useState()
   const [subject, setSubject] = useState()
   useEffect(() => {
     axios
@@ -96,6 +96,9 @@ export default function Home({ domain }) {
               <button type="submit">Obtenir un fichier de barèmes</button>
             </fieldset>
           </form>
+          <div>
+            <a href={`${domain}/logout`}>Se déconnecter</a>
+          </div>
         </div>
       )}
 

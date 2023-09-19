@@ -114,9 +114,9 @@ def get_login():
 
     if "email" in session:
         email = session["email"]
-        if email.endswith("@strasbourg.eu") or email == "thomas@codeursenliberte":
+        if email.endswith("@strasbourg.eu") or email == "thomas@codeursenliberte.fr":
             return email[0 : email.find("@")]
-        raise Exception("Wrong email, no chocolate")
+        raise Exception(f"Wrong email, no chocolate ({email})")
     raise Exception("No email, no chocolate")
 
 
