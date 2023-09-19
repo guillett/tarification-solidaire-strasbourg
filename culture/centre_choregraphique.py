@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+import os
 import sys
 
 sys.path.append("../technique")
@@ -8,15 +12,16 @@ import pandas as pd
 
 
 def get_df():
-    raw_df = pd.read_csv(
-        "/home/thomas/Nextcloud/CodeursEnLiberte/EMS/culture/CCS_ELEVES_FULL.csv",
-        delimiter=";",
-        encoding="windows-1250",
-        index_col=0,
-        decimal=",",
-    )
+    # raw_df = pd.read_csv(
+    #     f"{os.getenv("DATA_FOLDER")}culture/CCS_ELEVES_FULL.csv",
+    #     delimiter=";",
+    #     encoding="windows-1250",
+    #     index_col=0,
+    #     decimal=",",
+    # )
+    raw_df = pd.read_pickle(f"{os.getenv('DATA_FOLDER')}culture/CCS_ELEVES_anon.pickle")
     df_types = pd.read_excel(
-        "/home/thomas/Nextcloud/CodeursEnLiberte/EMS/culture/CSS_Tarifs20230720.xlsx",
+        f"{os.getenv('DATA_FOLDER')}culture/CSS_Tarifs20230720.xlsx",
         names=["Nom complet", "Profil", "Cours", "Type", "Tarif", "Période", "Montant"],
         index_col=None,
     )
