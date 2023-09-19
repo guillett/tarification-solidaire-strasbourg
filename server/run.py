@@ -7,30 +7,92 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 
-from compute import compute
-
-import datetime
-from flask import jsonify, Flask, request
+#from compute import compute
+from flask import jsonify, Flask, request, redirect, send_file, session
 from flask_cors import CORS
 
 application = Flask(__name__, static_folder="front/out", static_url_path="/")
+application.secret_key = os.getenv("SECRET_KEY")
 CORS(application, origins="*")
 
+client_id = os.getenv("OAUTH_CLIENT_ID")
+client_secret = os.getenv("OAUTH_CLIENT_SECRET")
+oauth_authorize_url = os.getenv('OAUTH_AUTHORIZE_URL')
+oauth_token_url = os.getenv('OAUTH_TOKEN_URL')
+oauth_userinfo_url = os.getenv('OAUTH_USERINFO_URL')
+
+BASE_URL = os.getenv('BASE_URL')
+UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER')
 
 @application.route("/")
 def index():
     return application.send_static_file("index.html")
 
 
+import urllib.parse
+@application.route("/login")
+def login():
+    url = f'{oauth_authorize_url}?'
+    params = {
+    'client_id': client_id,
+    'state': "42",
+    "response_type":"code",
+    "scope": "openid email profile",
+    "redirect_uri": f"{BASE_URL}/auth"
+    }
+
+    full_path = url + urllib.parse.urlencode(params)
+    return redirect(full_path)
+
+
+import requests
+@application.route("/auth")
+def auth():
+    code = request.args.get('code')
+    access_token_url = oauth_token_url
+    params = {
+        'grant_type': 'authorization_code',
+        'client_id': client_id,
+        'client_secret': client_secret,
+        'code': code,
+        "redirect_uri": f"{BASE_URL}/auth"
+    }
+    res_token = requests.post(access_token_url, data=params,
+        headers={
+        "accept": "application/json"})
+    token = res_token.json()['access_token']
+    res_info = requests.get(oauth_userinfo_url, headers={"authorization": f"bearer {token}"})
+    session['email'] = res_info.json()['email']
+    return redirect('/')
+
+
+@application.route("/me")
+def me():
+    if 'email' in session:
+        return jsonify({'email': session['email']})
+    else:
+        return jsonify({'error': 'not logged in'})
+
+@application.route("/budget", methods=["POST"])
+def budget():
+    subject = request.form['subject']
+    timestamp = '12'
+    login = 'thomas.guillet'
+
+    if 'file' not in request.files:
+        return
+    f = request.files['file']
+    filename = f'{UPLOAD_FOLDER}/{subject}_{timestamp}_{login}.ods'
+    f.save(filename)
+    return send_file(filename)
+
+
 @application.route("/test")
 def test():
     return application.send_static_file("test.html")
 
-
 import json
-
 from grist import api
-
 
 @application.route("/fetch")
 def fetch():
