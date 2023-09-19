@@ -240,7 +240,7 @@ def process_file_sheets(tbs, get_result_fnc, input_file, output_file):
     for s in doc.sheets:
         sbr = SheetBasedReform(tbs, s)
         sbrr = StatutReform(sbr)
-        v = get_result_fnc(tbs, 1, sbrr)
+        v = get_result_fnc(tbs, 10, sbrr)
         res.append((s.name, v))
 
     resumes = []
