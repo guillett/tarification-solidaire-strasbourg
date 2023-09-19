@@ -100,6 +100,7 @@ al_fields = {
 def get_results(tbs, sample_count=1, reform=None):
     df_apm_usage, df_al = get_dfs()
     rows = []
+    dfs = []
 
     data_apm = build_data(df_apm_usage, sample_count)
     apm_sample_ids = np.repeat(list(range(sample_count)), len(df_apm_usage))
@@ -107,27 +108,30 @@ def get_results(tbs, sample_count=1, reform=None):
     res_apm = pd.DataFrame(
         {
             "sample_id": data_apm["input_data_frame_by_entity"]["famille"].sample_id,
-            "nombre": np.tile(df_apm_usage.MOIS, sample_count),
+            "qf_caf": data_apm["input_data_frame_by_entity"]["famille"].qf_caf,
+            "qf_fiscal": data_apm["input_data_frame_by_entity"]["famille"].qf_fiscal,
+            "quantité": np.tile(df_apm_usage.MOIS, sample_count),
         }
     )
+    dfs.append(("APM", res_apm))
 
     def compute_apm(s, res, field):
         prix = s.simulation.calculate(
             "strasbourg_periscolaire_maternelle_prix", base_period
         )
         res[field] = prix
-        res["cout"] = res[field] * res.nombre
+        res["cout"] = res[field] * res.quantité
 
     compute_apm(scenario_apm, res_apm, "prix")
 
     row = ["DEE", "APM"]
-    apm_count, apm_value = extract(res_apm, "cout", "nombre")
+    apm_count, apm_value = extract(res_apm, "cout", "quantité")
     row.extend([apm_count["mean"], apm_count["count"]])
     row.extend(apm_value)
     if reform:
         r_scenario_apm = StrasbourgSurveyScenario(reform, data=data_apm)
         compute_apm(r_scenario_apm, res_apm, "prix_r")
-        _, r_apm_value = extract(res_apm, "cout", "nombre")
+        _, r_apm_value = extract(res_apm, "cout", "quantité")
         row.extend(r_apm_value)
 
     rows.append(row)
@@ -137,7 +141,7 @@ def get_results(tbs, sample_count=1, reform=None):
     res_al = pd.DataFrame(
         data={
             "sample_id": data_al["input_data_frame_by_entity"]["famille"].sample_id,
-            "nombre": np.tile(df_al.NOMBRE, sample_count),
+            "quantité": np.tile(df_al.NOMBRE, sample_count),
             "service": np.tile(df_al.SERVICE2, sample_count),
         }
     )
@@ -147,7 +151,7 @@ def get_results(tbs, sample_count=1, reform=None):
     res_al["prix"] = res_al.reindex(cols, axis=1).to_numpy()[
         np.arange(len(res_al)), idx
     ]
-    res_al["cout"] = res_al.prix * res_al.nombre
+    res_al["cout"] = res_al.prix * res_al.quantité
     if reform:
         r_scenario_al = StrasbourgSurveyScenario(reform, data=data_al)
         for v in al_fields:
@@ -158,16 +162,16 @@ def get_results(tbs, sample_count=1, reform=None):
             res_al["prix_r"] = res_al.reindex(r_cols, axis=1).to_numpy()[
                 np.arange(len(res_al)), r_idx
             ]
-            res_al["cout_r"] = res_al.prix_r * res_al.nombre
+            res_al["cout_r"] = res_al.prix_r * res_al.quantité
 
     for n, df in res_al.groupby("service"):
         row = ["DEE", n]
-        count, value = extract(df, "cout", "nombre")
+        count, value = extract(df, "cout", "quantité")
         row.extend([count["mean"], count["count"]])
         row.extend(value)
         if reform:
-            _, r_value = extract(df, "cout_r", "nombre")
+            _, r_value = extract(df, "cout_r", "quantité")
             row.extend(r_value)
         rows.append(row)
 
-    return pd.DataFrame(rows, columns=result_index[0 : len(rows[0])])
+    return pd.DataFrame(rows, columns=result_index[0 : len(rows[0])]), dfs

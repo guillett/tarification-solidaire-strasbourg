@@ -1,5 +1,5 @@
 import numpy as np
-from rules import get_values, dyn_rules, constant_value
+from rules import dyn_rules
 
 age_rules = dyn_rules(
     lambda mi, ma, s: (np.ones(s) * (mi + ma - 1) / 2).astype("int64"), 0, 99
@@ -25,7 +25,10 @@ age_override = {
 def determine_age(individu_df):
     qf_groups = individu_df.groupby(by=["agerule"]).groups
     for key in qf_groups:
-        indexes_in_group = qf_groups[key]
-        rule = key if key not in age_override else age_override[key]
-        v = age_rules(rule)(len(indexes_in_group))
-        individu_df.loc[indexes_in_group, "age"] = v
+        try:
+            indexes_in_group = qf_groups[key]
+            rule = key if key not in age_override else age_override[key]
+            v = age_rules(rule)(len(indexes_in_group))
+            individu_df.loc[indexes_in_group, "age"] = v
+        except Exception as e:
+            raise Exception(key, e)

@@ -106,6 +106,10 @@ def test_unconstraint():
     assert compute("QF") == (None, None, "QF")
 
 
+def test_tuple():
+    assert compute("QF({'21':12})") == (None, None, "QF")
+
+
 def test_cache():
     res = get_values("QF<40")
     res_cached = get_values("QF<40")

@@ -19,72 +19,91 @@ fields = {
         "champ_pu": "Pu entrée unitaire",
         "openfisca_input_variable": "strasbourg_piscine_entree_unitaire",
         "openfisca_output_variable": "strasbourg_piscine_entree_unitaire_prix",
+        "bareme": lambda p: p.communes.strasbourg.piscine.entree_unitaire.bareme_qf,
     },
     "10 entrées": {
         "categorie": "10 entrées",
         "champ_pu": "Pu 10 entrées",
         "openfisca_input_variable": "strasbourg_piscine_10_entrees",
         "openfisca_output_variable": "strasbourg_piscine_10_entrees_prix",
+        "bareme": lambda p: p.communes.strasbourg.piscine._10_entrees.bareme_qf,
     },
-    "abo_annuel": {
-        "categorie": "abo_annuel",
-        "champ_pu": "pu abo_annuel",
+    "abonnement annuel": {
+        "categorie": "abonnement annuel",
+        "champ_pu": "pu abonnement annuel",
         "openfisca_input_variable": "strasbourg_piscine_abonnement_annuel",
         "openfisca_output_variable": "strasbourg_piscine_abonnement_annuel_prix",
+        "bareme": lambda p: p.communes.strasbourg.piscine.abonnement_annuel.bareme,
     },
-    "abo_annuel_ce": {
-        "categorie": "abo_annuel_ce",
-        "champ_pu": "pu abo_annuel_ce",
+    # "abo_annuel_été": {
+    #     "categorie": "abo_annuel_été",
+    #     "champ_pu": "pu abo_annuel",
+    #     "openfisca_input_variable": "strasbourg_piscine_abonnement_annuel",
+    #     "openfisca_output_variable": "strasbourg_piscine_abonnement_ete_prix",
+    #     "bareme": lambda p: p.communes.strasbourg.piscine.abonnement_ete,
+    # },
+    "abonnement annuel CE": {
+        "categorie": "abonnement annuel CE",
+        "champ_pu": "pu abonnement annuel CE",
         "openfisca_input_variable": "strasbourg_piscine_abonnement_ce",
         "openfisca_output_variable": "strasbourg_piscine_abonnement_ce_prix",
+        "bareme": None,
     },
-    "5 entrées ce": {
-        "categorie": "5 entrées ce",
-        "champ_pu": "pu 5 entrées ce",
+    "5 entrées CE": {
+        "categorie": "5 entrées CE",
+        "champ_pu": "pu 5 entrées CE",
         "openfisca_input_variable": "strasbourg_piscine_abonnement_ce",
         "openfisca_output_variable": "strasbourg_piscine_5_entrees_ce_prix",
+        "bareme": None,
     },
     "cycle": {
         "categorie": "cycle",
         "champ_pu": "pu cycle",
         "openfisca_input_variable": "strasbourg_piscine_abonnement_ce",
         "openfisca_output_variable": "strasbourg_piscine_cycle_prix",
+        "bareme": lambda p: p.communes.strasbourg.piscine.cycle.bareme,
     },
     "stage été": {
         "categorie": "stage été",
         "champ_pu": "pu stage été",
         "openfisca_input_variable": "strasbourg_piscine_abonnement_ce",
         "openfisca_output_variable": "strasbourg_piscine_stage_ete_prix",
+        "bareme": lambda p: p.communes.strasbourg.piscine.stage_ete.bareme,
     },
     "stage vacances": {
         "categorie": "stage vacances",
         "champ_pu": "pu stage vacances",
         "openfisca_input_variable": "strasbourg_piscine_abonnement_ce",
         "openfisca_output_variable": "strasbourg_piscine_stage_vacances_prix",
+        "bareme": lambda p: p.communes.strasbourg.piscine.stage_vacances.bareme,
     },
     "stage 5 séances": {
         "categorie": "stage 5 séances",
         "champ_pu": "pu stage 5 séances",
         "openfisca_input_variable": "strasbourg_piscine_abonnement_ce",
         "openfisca_output_variable": "strasbourg_piscine_stage_5_seances_prix",
+        "bareme": lambda p: p.communes.strasbourg.piscine.stage_5_seances.bareme,
     },
-    "patinoire entree unitaire": {
-        "categorie": "patinoire entree unitaire",
-        "champ_pu": "pu patinoire entree unitaire",
+    "patinoire entrée unitaire": {
+        "categorie": "patinoire entrée unitaire",
+        "champ_pu": "pu patinoire entrée unitaire",
         "openfisca_input_variable": "strasbourg_patinoire_entree_unitaire",
         "openfisca_output_variable": "strasbourg_patinoire_entree_unitaire_prix",
+        "bareme": lambda p: p.communes.strasbourg.patinoire.entree_unitaire.bareme_qf,
     },
-    "patinoire 10 entrees": {
-        "categorie": "patinoire 10 entrees",
-        "champ_pu": "pu patinoire 10 entrees",
+    "patinoire 10 entrées": {
+        "categorie": "patinoire 10 entrées",
+        "champ_pu": "pu patinoire 10 entrées",
         "openfisca_input_variable": "strasbourg_patinoire_10_entrees",
         "openfisca_output_variable": "strasbourg_patinoire_10_entrees_prix",
+        "bareme": lambda p: p.communes.strasbourg.patinoire._10_entrees.bareme_qf,
     },
-    "patinoire 5 entrees ce": {
-        "categorie": "patinoire 5 entrees ce",
-        "champ_pu": "pu patinoire 5 entrees ce",
+    "patinoire 5 entrées CE": {
+        "categorie": "patinoire 5 entrées CE",
+        "champ_pu": "pu patinoire 5 entrées CE",
         "openfisca_input_variable": "strasbourg_patinoire_5_entrees_ce",
         "openfisca_output_variable": "strasbourg_patinoire_5_entrees_ce_prix",
+        "bareme": None,
     },
 }
 
@@ -140,6 +159,8 @@ def build_data(df, categorie, sample_count=1):
             "prestation": inc(product_df.prestation),
             "qfrule": inc(product_df.qfrule),
             "qf_caf": famille_df.qf_caf,
+            "qf_fiscal": famille_df.qf_fiscal,
+            "agent_ems": famille_df.agent_ems,
             "age": individu_df.age,
             "prix_input": inc(product_df[champ_pu]),
             "quantité": 1,
@@ -168,12 +189,15 @@ def compute(tbs, data, res, openfisca_output_variable, suffix=""):
     return res
 
 
-def get_results(tbs, sample_count=1, reform=None):
+def get_results(tbs, sample_count=1, reform=None, single=None):
     df = get_df()
 
     get_total = lambda r: sum(r.prix * r.quantité)
     rows = []
+    dfs = []
     for v in fields:
+        if single and v != single:
+            continue
         data, res = build_data(df, v, sample_count)
         openfisca_output_variable = fields[v]["openfisca_output_variable"]
         compute(tbs, data, res, openfisca_output_variable)
@@ -187,5 +211,6 @@ def get_results(tbs, sample_count=1, reform=None):
             _, value = extract(res, "prix_r")
             row.extend(value)
         rows.append(row)
+        dfs.append((v, res))
 
-    return pd.DataFrame(rows, columns=result_index[0 : len(rows[0])])
+    return pd.DataFrame(rows, columns=result_index[0 : len(rows[0])]), dfs

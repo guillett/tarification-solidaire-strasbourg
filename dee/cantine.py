@@ -1,7 +1,12 @@
 import sys
 
 sys.path.append("../technique")
-from utils import StrasbourgSurveyScenario, base_period, get_data, determine_qf
+from utils import (
+    StrasbourgSurveyScenario,
+    base_period,
+    get_data,
+    determine_qf_avec_enfants,
+)
 from results import result_index, extract
 
 import numpy as np
@@ -39,15 +44,15 @@ def get_df():
 fields = {
     "Repas standard": {
         "cout": "strasbourg_metropole_cout_cantine_individu",
-        "nombre": "strasbourg_metropole_nombre_repas_cantine",
+        "quantité": "strasbourg_metropole_nombre_repas_cantine",
     },
     "Repas végétarien": {
         "cout": "strasbourg_metropole_cout_cantine_individu_repas_vegetarien",
-        "nombre": "strasbourg_metropole_nombre_repas_cantine_vegetarien",
+        "quantité": "strasbourg_metropole_nombre_repas_cantine_vegetarien",
     },
     "Repas panier": {
         "cout": "strasbourg_metropole_cout_cantine_individu_repas_panier",
-        "nombre": "strasbourg_metropole_nombre_repas_cantine_panier",
+        "quantité": "strasbourg_metropole_nombre_repas_cantine_panier",
     },
 }
 
@@ -91,7 +96,7 @@ def build_data(df, sample_count):
         }
     )
     for f in fields:
-        fn = fields[f]["nombre"]
+        fn = fields[f]["quantité"]
         individu_df[fn] = np.tile(raw_df[fn], sample_count)
 
     famille_df = pd.DataFrame(
@@ -100,7 +105,7 @@ def build_data(df, sample_count):
             "qfrule": np.tile(raw_df.qfrule, sample_count),
         }
     )
-    determine_qf(famille_df)
+    determine_qf_avec_enfants(famille_df)
 
     menage_df = pd.DataFrame({})
     foyerfiscaux_df = pd.DataFrame({})
@@ -122,7 +127,7 @@ def build_data(df, sample_count):
     return data
 
 
-def get_results(tbs, sample_count=2, reform=None):
+def get_results(tbs, sample_count=2, reform=None, single=None):
     df = get_df()
     data = build_data(df, sample_count)
     rows = []
@@ -130,33 +135,47 @@ def get_results(tbs, sample_count=2, reform=None):
     scenario = StrasbourgSurveyScenario(tbs, data=data)
     if reform:
         r_scenario = StrasbourgSurveyScenario(reform, data=data)
-    res = pd.DataFrame(
-        {"sample_id": data["input_data_frame_by_entity"]["famille"].sample_id}
-    )
+
+    dfs = []
     for n in fields:
+        if single and n != single:
+            continue
         row = ["DEE", n]
-        prix_field = "prix_" + n
-        nombre_field = "nombre_" + n
-        res[prix_field] = scenario.simulation.calculate(fields[n]["cout"], base_period)
-        res[nombre_field] = scenario.simulation.calculate(
-            fields[n]["nombre"], base_period
+        res = pd.DataFrame(
+            {
+                "sample_id": data["input_data_frame_by_entity"]["famille"].sample_id,
+                "qf_caf": data["input_data_frame_by_entity"]["famille"].qf_caf,
+                "qf_fiscal": data["input_data_frame_by_entity"]["famille"].qf_fiscal,
+                "TYPOLOGIE": data["input_data_frame_by_entity"]["famille"].TYPOLOGIE,
+            },
         )
-        count, value = extract(res, prix_field, nombre_field)
+        cout_field = "cout"
+        nombre_field = "quantité"
+        prix_field = "prix"
+        res[cout_field] = scenario.simulation.calculate(fields[n]["cout"], base_period)
+        res[nombre_field] = scenario.simulation.calculate(
+            fields[n]["quantité"], base_period
+        )
+        res[prix_field] = (res[cout_field] / res[nombre_field]).round(2)
+        count, value = extract(res, cout_field, nombre_field)
         row.extend([count["mean"], count["count"]])
         row.extend(value)
 
         if reform:
-            prix_field = "r_prix_" + n
-            nombre_field = "r_nombre_" + n
-            res[prix_field] = r_scenario.simulation.calculate(
+            cout_field = "cout_r"
+            nombre_field = "quantité_r"
+            prix_field = "prix_r"
+            res[cout_field] = r_scenario.simulation.calculate(
                 fields[n]["cout"], base_period
             )
             res[nombre_field] = r_scenario.simulation.calculate(
-                fields[n]["nombre"], base_period
+                fields[n]["quantité"], base_period
             )
-            count, value = extract(res, prix_field, nombre_field)
+            res[prix_field] = (res[cout_field] / res[nombre_field]).round(2)
+            count, value = extract(res, cout_field, nombre_field)
             row.extend(value)
 
+        dfs.append((n, res))
         rows.append(row)
 
-    return pd.DataFrame(rows, columns=result_index[0 : len(rows[0])])
+    return pd.DataFrame(rows, columns=result_index[0 : len(rows[0])]), dfs

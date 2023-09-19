@@ -8,18 +8,21 @@ export const getStaticProps = async (context) => {
 }
 
 function isOk(email) {
-  return email?.endsWith('@strasbourg.eu')
+  return (
+    email?.endsWith('@strasbourg.eu') || email === 'thomas@codeursenliberte.fr'
+  )
 }
 
 export default function Home({ domain }) {
   const options = [
-    'Culture - CCS',
-    'Mobilité',
-    'Sports',
-    'DEE',
-    'Culture - CRR',
+    { name: 'Culture - CCS', value: 'ccs' },
+    /*    { name: 'Mobilité', value: 'cts' },
+    { name: 'Sports', value: '' },
+    { name: 'DEE', value: '' },
+    { name: 'Culture - CRR', value: 'cons' },//*/
   ]
   const [email, setEmail] = useState('@strasbourg.eu')
+  const [subject, setSubject] = useState()
   useEffect(() => {
     axios
       .get(`${domain}/me`)
@@ -30,6 +33,10 @@ export default function Home({ domain }) {
         }
       })
   }, [domain])
+
+  const test = (event) => {
+    console.log(event)
+  }
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-2">
       <h1>
@@ -53,19 +60,40 @@ export default function Home({ domain }) {
                   type="file"
                   accept=".ods, application/vnd.oasis.opendocument.spreadsheet"
                   required
+                  onChange={test}
                 />
               </div>
               <div>
                 <label htmlFor="subject">Thématique : </label>
-                <select name="subject" id="subject">
+                <select name="subject" id="subject" value={subject}>
                   {options.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
+                    <option key={option.value} value={option.value}>
+                      {option.name}
                     </option>
                   ))}
                 </select>
               </div>
               <button type="submit">Évaluer les scénarios</button>
+            </fieldset>
+          </form>
+          <form
+            method="post"
+            encType="multipart/form-data"
+            action={`${domain}/template`}
+          >
+            <fieldset>
+              <legend>Fichier de barèmes </legend>
+              <div>
+                <label htmlFor="subject">Thématique : </label>
+                <select name="subject" id="subject">
+                  {options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit">Obtenir un fichier de barèmes</button>
             </fieldset>
           </form>
         </div>

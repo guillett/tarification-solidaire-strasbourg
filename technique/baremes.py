@@ -7,33 +7,43 @@ baremes = {
     "dee_std": lambda p: p.metropoles.strasbourg.tarifs_cantine,
     "dee_veg": lambda p: p.metropoles.strasbourg.tarifs_repas_vege,
     "dee_pan": lambda p: p.metropoles.strasbourg.tarifs_repas_panier,
+    "ccs_eveil": lambda p: p.communes.strasbourg.centre_choregraphique.eveil.TP,
     "ccs_eveil_tp": lambda p: p.communes.strasbourg.centre_choregraphique.eveil.TP,
     "ccs_eveil_ra": lambda p: p.communes.strasbourg.centre_choregraphique.eveil.RA,
     "ccs_eveil_rb": lambda p: p.communes.strasbourg.centre_choregraphique.eveil.RB,
+    "ccs_enf_1c": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._1_cours.TP,
     "ccs_enf_1c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._1_cours.TP,
     "ccs_enf_1c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._1_cours.RA,
     "ccs_enf_1c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._1_cours.RB,
+    "ccs_enf_2c": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._2_cours.TP,
     "ccs_enf_2c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._2_cours.TP,
     "ccs_enf_2c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._2_cours.RA,
     "ccs_enf_2c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._2_cours.RB,
+    "ccs_enf_3c": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._3_cours.TP,
     "ccs_enf_3c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._3_cours.TP,
     "ccs_enf_3c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._3_cours.RA,
     "ccs_enf_3c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._3_cours.RB,
+    "ccs_enf_4c": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._4_cours.TP,
     "ccs_enf_4c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._4_cours.TP,
     "ccs_enf_4c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._4_cours.RA,
     "ccs_enf_4c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._4_cours.RB,
+    "ccs_adu_1c_tri": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours_trimestre.TP,
     "ccs_adu_1c_tri_tp": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours_trimestre.TP,
     "ccs_adu_1c_tri_ra": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours_trimestre.RA,
     "ccs_adu_1c_tri_rb": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours_trimestre.RB,
+    "ccs_adu_1c": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours.TP,
     "ccs_adu_1c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours.TP,
     "ccs_adu_1c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours.RA,
     "ccs_adu_1c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours.RB,
+    "ccs_adu_2c": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._2_cours.TP,
     "ccs_adu_2c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._2_cours.TP,
     "ccs_adu_2c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._2_cours.RA,
     "ccs_adu_2c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._2_cours.RB,
+    "ccs_adu_3c": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._3_cours.TP,
     "ccs_adu_3c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._3_cours.TP,
     "ccs_adu_3c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._3_cours.RA,
     "ccs_adu_3c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._3_cours.RB,
+    "ccs_adu_4c": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._4_cours.TP,
     "ccs_adu_4c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._4_cours.TP,
     "ccs_adu_4c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._4_cours.RA,
     "ccs_adu_4c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._4_cours.RB,
@@ -92,3 +102,47 @@ def build_table_data(tbs):
 
     records = [{"fields": threshold_rows[i]} for i in level_data]
     return columns, records
+
+
+import ezodf
+
+
+def build_sheet(tbs, subject, file_path):
+    if subject != "ccs":
+        raise Exception(f"Oupsy {subject}")
+
+    ods = ezodf.newdoc("ods", file_path)
+    parameters = tbs.get_parameters_at_instant("2023-09-01")
+
+    bareme_names = []
+    for b in baremes:
+        if b.startswith("ccs") and (
+            (not b.endswith("_tp"))
+            and (not b.endswith("_ra"))
+            and (not b.endswith("_rb"))
+        ):
+            bareme_names.append(b)
+
+    levels = {}
+    for bn in bareme_names:
+        b = baremes[bn](parameters)
+        for i, value in enumerate(b.thresholds):
+            if value not in levels:
+                levels[value] = {}
+            levels[value][bn] = b.amounts[i]
+
+    sheet = ezodf.Sheet("base", size=(len(levels) + 1, len(bareme_names) + 1))
+    ods.sheets += sheet
+
+    sheet[0, 0].set_value("QF")
+    for index, v in enumerate(bareme_names):
+        sheet[0, index + 1].set_value(v)
+
+    for index, level in enumerate(levels):
+        values = levels[level]
+        sheet[index + 1, 0].set_value(level)
+        for indexBareme, name in enumerate(bareme_names):
+            if name in values:
+                sheet[index + 1, indexBareme + 1].set_value(values[name])
+
+    ods.save()

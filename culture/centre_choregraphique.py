@@ -86,6 +86,8 @@ def build_data(df, categorie, sample_count=1):
             "sample_id": sample_ids,
             "individu_id": indiv_ids,
             "qf_caf": famille_df.qf_caf,
+            "qf_fiscal": famille_df.qf_fiscal,
+            "quantité": 1,
             "prix_input": np.tile(product_df["Montant.facturé"], sample_count),
         }
     )
@@ -107,8 +109,8 @@ def compute(tbs, data, base, openfisca_output_variable, suffix=""):
     scenario = StrasbourgSurveyScenario(tbs, data=data)
     prix = scenario.simulation.calculate(openfisca_output_variable, base_period)
 
-    base["prix_output" + suffix] = prix
-    base["res" + suffix] = (base.prix_output - base.prix_input).abs() < 0.001
+    base["prix" + suffix] = prix
+    base["res" + suffix] = (base.prix - base.prix_input).abs() < 0.001
     return base
 
 
@@ -117,7 +119,8 @@ def get_results(tbs, sample_count=1, reform=None):
 
     results = []
     rows = []
-    output_field = "prix_output"
+    output_field = "prix"
+    dfs = []
     for v in fields:
         openfisca_output_variable = fields[v]
 
@@ -130,9 +133,9 @@ def get_results(tbs, sample_count=1, reform=None):
 
         if reform:
             r_res = compute(reform, data, base, openfisca_output_variable, "_r")
-            _, r_value = extract(r_res, output_field)
+            _, r_value = extract(r_res, output_field + "_r")
             row.extend(r_value)
-
+        dfs.append((v, res))
         rows.append(row)
 
-    return pd.DataFrame(rows, columns=result_index[0 : len(rows[0])])
+    return pd.DataFrame(rows, columns=result_index[0 : len(rows[0])]), dfs

@@ -21,15 +21,20 @@ def add_compensation(df):
     )
 
 
+def set_ajustement_mensuel_num(df):
+    df["ajustement_mensuel_num"] = df.ajustement_mensuel.astype("str").apply(
+        lambda x: eval(str(x)) if x != "nan" else 1
+    )
+
+
 def get_df():
     full_df = pd.read_excel(
         os.getenv("DATA_FOLDER")
         + "mobilite/extrait-Tableau_de_Bord_CTS_Valeurs 012023_ajout_qf_age.xlsx",
         sheet_name="QRD - Quantités",
     )
-    full_df["ajustement_mensuel_num"] = full_df.ajustement_mensuel.astype("str").apply(
-        lambda x: eval(str(x)) if x != "nan" else 1
-    )
+    set_ajustement_mensuel_num(full_df)
+
     compens_df = full_df[~full_df.Exclu.isna() * ~full_df.ajustement_mensuel.isna()][
         ["Titres", "quantité", "ajustement_mensuel_num"]
     ]
@@ -122,13 +127,15 @@ def build_data(df, res_df, sample_count=1):
     return sample_data, complement_df
 
 
-def compute_result(scenario, complement_df, recette_base, compens_constant):
+def compute_result(
+    scenario, complement_df, recette_base, compens_constant, period=base_period
+):
     sample_calc = scenario.simulation.calculate(
-        "eurometropole_strasbourg_tarification_transport", base_period
+        "eurometropole_strasbourg_tarification_transport", period
     )
     sample_reduit = scenario.simulation.calculate(
         "eurometropole_strasbourg_tarification_solidaire_transport_eligible_tarif_reduit",
-        base_period,
+        period,
     )
 
     sample_res = pd.DataFrame(
@@ -179,7 +186,8 @@ def get_results(tbs, sample_count=1, reform=None):
     res[field] = res.pu_calc_ht * 12
     count, value = extract(res, field, "quantité")
 
-    row = ["Mobilité", "Transports en commun", count["mean"], count["count"], *value]
+    name = "Transports en commun"
+    row = ["Mobilité", name, count["mean"], count["count"], *value]
 
     if reform:
         reform_scenario = StrasbourgSurveyScenario(reform, data=data)
@@ -189,5 +197,12 @@ def get_results(tbs, sample_count=1, reform=None):
         r_res[field] = r_res.pu_calc_ht * 12
         r_count, r_value = extract(r_res, field, "quantité")
         row.extend(r_value)
+        result = res.join(r_res, rsuffix="_r")
+    else:
+        result = res
 
-    return pd.DataFrame([row], columns=result_index[0 : len(row)])
+    result["qf_caf"] = data["input_data_frame_by_entity"]["famille"]["qf_caf"]
+    result["qf_fiscal"] = data["input_data_frame_by_entity"]["famille"]["qf_fiscal"]
+    result["ajustement_mensuel_num"] = complement_df.ajustement_mensuel_num
+
+    return pd.DataFrame([row], columns=result_index[0 : len(row)]), [(name, result)]
