@@ -11,3 +11,9 @@ run:
 
 dev:
 	FLASK_DEBUG=1 FLASK_RUN_PORT=8000 FLASK_APP=run.py flask run
+
+restart:
+	systemctl restart plugin_python
+
+status:
+	systemctl status plugin_python

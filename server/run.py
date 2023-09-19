@@ -18,6 +18,7 @@ CORS(application, origins="*")
 client_id = os.getenv("OAUTH_CLIENT_ID")
 client_secret = os.getenv("OAUTH_CLIENT_SECRET")
 oauth_authorize_url = os.getenv('OAUTH_AUTHORIZE_URL')
+oauth_logout_url = os.getenv('OAUTH_LOGOUT_URL')
 oauth_token_url = os.getenv('OAUTH_TOKEN_URL')
 oauth_userinfo_url = os.getenv('OAUTH_USERINFO_URL')
 
@@ -45,6 +46,20 @@ def login():
     return redirect(full_path)
 
 
+@application.route("/logout")
+def logout():
+    url = f'{oauth_logout_url}?'
+    params = {
+    "post_logout_redirect_uri": f'{BASE_URL}/',
+    "id_token_hint": session['id_token'] if 'id_token' in session else None
+    }
+
+    full_path = url + urllib.parse.urlencode(params)
+    if 'email' in session:
+        session.pop('email')
+    return redirect(full_path)
+
+
 import requests
 @application.route("/auth")
 def auth():
@@ -60,8 +75,10 @@ def auth():
     res_token = requests.post(access_token_url, data=params,
         headers={
         "accept": "application/json"})
-    token = res_token.json()['access_token']
+    res_token_json = res_token.json()
+    token = res_token_json['access_token']
     res_info = requests.get(oauth_userinfo_url, headers={"authorization": f"bearer {token}"})
+    session['id_token'] = res_token_json['id_token']
     session['email'] = res_info.json()['email']
     return redirect('/')
 

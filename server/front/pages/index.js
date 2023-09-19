@@ -6,8 +6,12 @@ export const getStaticProps = (async (context) => {
   return { props: { domain } }
 })
 
+function isOk(email) {
+  return email?.endsWith('@strasbourg.eu')
+}
+
 export default function Home({domain}) {
-  const [email, setEmail] = useState("thomas@strasbourg.eu")
+  const [email, setEmail] = useState()
   useEffect(() => {
     axios.get(`${domain}/me`)
     .then(res => res.data)
@@ -20,8 +24,8 @@ export default function Home({domain}) {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-2">
       <h1>Application d’évaluation budgétaire dans le cadre de la refonte des grilles tarifaires de la Ville et l’Eurométropole de Strasbourg</h1>
+      { isOk(email) && (
       <div>
-            <p>Adresse email utilisée : {email}</p>
             <form method="post" encType="multipart/form-data" action={`${domain}/budget`}>
               <fieldset>
               <legend>Évaluation budgétaire</legend>
@@ -46,11 +50,16 @@ export default function Home({domain}) {
               </fieldset>
             </form>
       </div>
+      )}
 
-      { !email && (<div>
+      { !isOk(email) && (<div>
         <p>Cette application nécessite une authentification avec une adresse email de Strasbourg.
         </p>
-        <a href={`${domain}/login`}><div className="moncomptepro-button"/></a>
+        { email && (<div>
+            <p>Adresse email utilisée : {email}</p>
+            <a href={`${domain}/logout`}>Se déconnecter</a>
+          </div>)}
+        { !email && (<a href={`${domain}/login`}><div className="moncomptepro-button"/></a> )}
         <div>
           <p>
           <a href="https://moncomptepro.beta.gouv.fr/" target="_blank" rel="noopener noreferrer"
