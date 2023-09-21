@@ -47,18 +47,21 @@ baremes = {
     "ccs_adu_4c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._4_cours.TP,
     "ccs_adu_4c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._4_cours.RA,
     "ccs_adu_4c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._4_cours.RB,
-    "cons_enf12_agent": lambda p: p.communes.strasbourg.conservatoire.traditionnel.agent_ems.enfant_12,
-    "cons_enf12_ems": lambda p: p.communes.strasbourg.conservatoire.traditionnel.habitant_ems.enfant_12,
-    "cons_enf12_ext": lambda p: p.communes.strasbourg.conservatoire.traditionnel.hors_ems.enfant_12,
-    "cons_enf3": lambda p: p.communes.strasbourg.conservatoire.traditionnel.enfant_3,
-    "cons_ha_ems_1": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.habitant_ems.enfant_1,
-    "cons_ha_ext_1": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.hors_ems.enfant_1,
-    "cons_ha_ems_2": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.habitant_ems.enfant_2,
-    "cons_ha_ext_2": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.hors_ems.enfant_2,
-    "cons_ha_ems_3": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.habitant_ems.enfant_3,
-    "cons_ha_ext_3": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.hors_ems.enfant_3,
-    "cons_ha_ems_4": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.habitant_ems.enfant_4,
-    "cons_ha_ext_4": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.hors_ems.enfant_4,
+    "crr_autre_dominante": lambda p: p.communes.strasbourg.conservatoire.autre_dominante,
+    "crr_bourse": lambda p: p.communes.strasbourg.conservatoire.bourse,
+    "crr_cycle": lambda p: p.communes.strasbourg.conservatoire.cycle,
+    "crr_enf12_agent": lambda p: p.communes.strasbourg.conservatoire.traditionnel.agent_ems.enfant_12,
+    "crr_enf12_ems": lambda p: p.communes.strasbourg.conservatoire.traditionnel.habitant_ems.enfant_12,
+    "crr_enf12_ext": lambda p: p.communes.strasbourg.conservatoire.traditionnel.hors_ems.enfant_12,
+    "crr_enf3": lambda p: p.communes.strasbourg.conservatoire.traditionnel.enfant_3,
+    "crr_ha_ems_1": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.habitant_ems.enfant_1,
+    "crr_ha_ext_1": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.hors_ems.enfant_1,
+    "crr_ha_ems_2": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.habitant_ems.enfant_2,
+    "crr_ha_ext_2": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.hors_ems.enfant_2,
+    "crr_ha_ems_3": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.habitant_ems.enfant_3,
+    "crr_ha_ext_3": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.hors_ems.enfant_3,
+    "crr_ha_ems_4": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.habitant_ems.enfant_4,
+    "crr_ha_ext_4": lambda p: p.communes.strasbourg.conservatoire.horaires_amenages.hors_ems.enfant_4,
     "cts_base": lambda p: p.metropoles.strasbourg.tarification_solidaire.bareme,
     "cts_reduit": lambda p: p.metropoles.strasbourg.tarification_solidaire.bareme_reduit,
     "cts_emeraude": lambda p: p.metropoles.strasbourg.tarification_solidaire.bareme_emeraude,
@@ -71,7 +74,7 @@ baremes = {
     "pis_pu_reduit": lambda p: p.communes.strasbourg.piscine.entree_unitaire.bareme_qf_reduit,
     "pis_10": lambda p: p.communes.strasbourg.piscine._10_entrees.bareme_qf,
     "pis_10_reduit": lambda p: p.communes.strasbourg.piscine._10_entrees.bareme_qf_reduit,
-    "pis_5ce": lambda p: p.communes.strasbourg.piscine.ce.entrees,
+    "pis_5_ce": lambda p: p.communes.strasbourg.piscine.ce.entrees,
     "pis_abo_ann": lambda p: p.communes.strasbourg.piscine.abonnement_annuel.bareme,
     "pis_abo_ann_reduit": lambda p: p.communes.strasbourg.piscine.abonnement_annuel.bareme_reduit,
     "pis_abo_ann_ce": lambda p: p.communes.strasbourg.piscine.ce.abonnement,
@@ -106,21 +109,31 @@ def build_table_data(tbs):
 
 import ezodf
 
+bareme_selectors = {
+    "ccs": lambda b: (
+        b.startswith("ccs")
+        and (not b.endswith("_tp") and not b.endswith("_ra") and not b.endswith("_rb"))
+    ),
+    "crr": lambda b: b.startswith("crr"),
+    "sports": lambda b: (
+        (b.startswith("pat") or b.startswith("pis")) and not b.endswith("_reduit")
+    ),
+    "dee": lambda b: b.startswith("a") or b.startswith("dee"),
+    "cts": lambda b: b.startswith("cts"),
+}
+
 
 def build_sheet(tbs, subject, file_path):
-    if subject != "ccs":
+    if subject not in bareme_selectors:
         raise Exception(f"Oupsy {subject}")
 
     ods = ezodf.newdoc("ods", file_path)
     parameters = tbs.get_parameters_at_instant("2023-09-01")
 
     bareme_names = []
+    selector = bareme_selectors[subject]
     for b in baremes:
-        if b.startswith("ccs") and (
-            (not b.endswith("_tp"))
-            and (not b.endswith("_ra"))
-            and (not b.endswith("_rb"))
-        ):
+        if selector(b):
             bareme_names.append(b)
 
     levels = {}
@@ -141,6 +154,8 @@ def build_sheet(tbs, subject, file_path):
     for index, level in enumerate(levels):
         values = levels[level]
         sheet[index + 1, 0].set_value(level)
+        sheet[index + 1, 0].append(ezodf.Paragraph(str(level)))
+
         for indexBareme, name in enumerate(bareme_names):
             if name in values:
                 sheet[index + 1, indexBareme + 1].set_value(values[name])

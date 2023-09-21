@@ -4,22 +4,25 @@ import axios from 'axios'
 export const getStaticProps = async (context) => {
   const domain =
     process.env.NODE_ENV == 'production' ? '' : 'http://127.0.0.1:8000'
-  return { props: { domain } }
+  const force = process.env.NODE_ENV !== 'production'
+  return { props: { domain, force } }
 }
 
-function isOk(email) {
+function isOk(email, force) {
   return (
-    email?.endsWith('@strasbourg.eu') || email === 'thomas@codeursenliberte.fr'
+    force ||
+    email?.endsWith('@strasbourg.eu') ||
+    email === 'thomas@codeursenliberte.fr'
   )
 }
 
-export default function Home({ domain }) {
+export default function Home({ domain, force }) {
   const options = [
     { name: 'Culture - CCS', value: 'ccs' },
-    /*    { name: 'Mobilité', value: 'cts' },
-    { name: 'Sports', value: '' },
-    { name: 'DEE', value: '' },
-    { name: 'Culture - CRR', value: 'cons' },//*/
+    { name: 'Mobilité', value: 'cts' },
+    { name: 'Sports', value: 'sports' },
+    { name: 'DEE', value: 'dee' },
+    { name: 'Culture - CRR', value: 'crr' },
   ]
   const [email, setEmail] = useState()
   const [subject, setSubject] = useState()
@@ -34,16 +37,11 @@ export default function Home({ domain }) {
       })
   }, [domain])
 
-  const test = (event) => {
-    console.log(event)
-  }
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-2">
-      <h1>
-        Application d’évaluation budgétaire dans le cadre de la refonte des
-        grilles tarifaires de la Ville et l’Eurométropole de Strasbourg
-      </h1>
-      {isOk(email) && (
+      <h1>Tarification solidaire de Strasbourg</h1>
+      <h2>Outil d’évaluation budgétaire</h2>
+      {isOk(email, force) && (
         <div>
           <form
             method="post"
@@ -59,8 +57,6 @@ export default function Home({ domain }) {
                   id="file"
                   type="file"
                   accept=".ods, application/vnd.oasis.opendocument.spreadsheet"
-                  required
-                  onChange={test}
                 />
               </div>
               <div>
@@ -102,7 +98,7 @@ export default function Home({ domain }) {
         </div>
       )}
 
-      {!isOk(email) && (
+      {!isOk(email, force) && (
         <div>
           <p>
             Cette application nécessite une authentification avec une adresse

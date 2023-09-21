@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+import os
 import sys
 
 sys.path.append("../technique")
@@ -32,7 +36,7 @@ def get(filename):
 def get_df():
     return (
         get_data(
-            "/home/thomas/Nextcloud/CodeursEnLiberte/EMS/dee/Données cantines scolaires 2021.xlsx",
+            f"{os.getenv('DATA_FOLDER')}dee/Données cantines scolaires 2021.xlsx",
             get,
         )
         .groupby(["N° FAM", "QF", "N° PER", "REPAS"])
@@ -149,30 +153,32 @@ def get_results(tbs, sample_count=2, reform=None, single=None):
                 "TYPOLOGIE": data["input_data_frame_by_entity"]["famille"].TYPOLOGIE,
             },
         )
-        cout_field = "cout"
+        prix_total_field = "prix"
         nombre_field = "quantité"
-        prix_field = "prix"
-        res[cout_field] = scenario.simulation.calculate(fields[n]["cout"], base_period)
+        pu_field = "pu"
+        res[prix_total_field] = scenario.simulation.calculate(
+            fields[n]["cout"], base_period
+        )
         res[nombre_field] = scenario.simulation.calculate(
             fields[n]["quantité"], base_period
         )
-        res[prix_field] = (res[cout_field] / res[nombre_field]).round(2)
-        count, value = extract(res, cout_field, nombre_field)
+        res[pu_field] = (res[prix_total_field] / res[nombre_field]).round(2)
+        count, value = extract(res, prix_total_field, nombre_field)
         row.extend([count["mean"], count["count"]])
         row.extend(value)
 
         if reform:
-            cout_field = "cout_r"
+            prix_total_field = "prix_r"
             nombre_field = "quantité_r"
-            prix_field = "prix_r"
-            res[cout_field] = r_scenario.simulation.calculate(
+            pu_field = "pu_r"
+            res[prix_total_field] = r_scenario.simulation.calculate(
                 fields[n]["cout"], base_period
             )
             res[nombre_field] = r_scenario.simulation.calculate(
                 fields[n]["quantité"], base_period
             )
-            res[prix_field] = (res[cout_field] / res[nombre_field]).round(2)
-            count, value = extract(res, cout_field, nombre_field)
+            res[pu_field] = (res[prix_total_field] / res[nombre_field]).round(2)
+            count, value = extract(res, prix_total_field, nombre_field)
             row.extend(value)
 
         dfs.append((n, res))

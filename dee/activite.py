@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+import os
 import sys
 
 sys.path.append("../technique")
@@ -19,7 +23,7 @@ def get(file):
 
 def get_dfs():
     df = get_data(
-        "/home/thomas/Nextcloud/CodeursEnLiberte/EMS/dee/DEE_20230719_Données activités QF.xlsx",
+        f"{os.getenv('DATA_FOLDER')}dee/DEE_20230719_Données activités QF.xlsx",
         get,
     )
     df["SERVICE"] = df.Activite + "_" + df.UNITE
@@ -115,23 +119,24 @@ def get_results(tbs, sample_count=1, reform=None):
     )
     dfs.append(("APM", res_apm))
 
-    def compute_apm(s, res, field):
+    def compute_apm(s, res, suffix=""):
         prix = s.simulation.calculate(
             "strasbourg_periscolaire_maternelle_prix", base_period
         )
-        res[field] = prix
-        res["cout"] = res[field] * res.quantité
+        pu_field = f"pu{suffix}"
+        res[pu_field] = prix
+        res[f"prix{suffix}"] = res[pu_field] * res.quantité
 
-    compute_apm(scenario_apm, res_apm, "prix")
+    compute_apm(scenario_apm, res_apm)
 
     row = ["DEE", "APM"]
-    apm_count, apm_value = extract(res_apm, "cout", "quantité")
+    apm_count, apm_value = extract(res_apm, "prix", "quantité")
     row.extend([apm_count["mean"], apm_count["count"]])
     row.extend(apm_value)
     if reform:
         r_scenario_apm = StrasbourgSurveyScenario(reform, data=data_apm)
-        compute_apm(r_scenario_apm, res_apm, "prix_r")
-        _, r_apm_value = extract(res_apm, "cout", "quantité")
+        compute_apm(r_scenario_apm, res_apm, "_r")
+        _, r_apm_value = extract(res_apm, "prix_r", "quantité")
         row.extend(r_apm_value)
 
     rows.append(row)
@@ -148,10 +153,8 @@ def get_results(tbs, sample_count=1, reform=None):
     for v in al_fields:
         res_al[v] = scenario_al.simulation.calculate(al_fields[v], base_period)
     idx, cols = pd.factorize(res_al.service)
-    res_al["prix"] = res_al.reindex(cols, axis=1).to_numpy()[
-        np.arange(len(res_al)), idx
-    ]
-    res_al["cout"] = res_al.prix * res_al.quantité
+    res_al["pu"] = res_al.reindex(cols, axis=1).to_numpy()[np.arange(len(res_al)), idx]
+    res_al["prix"] = res_al.pu * res_al.quantité
     if reform:
         r_scenario_al = StrasbourgSurveyScenario(reform, data=data_al)
         for v in al_fields:
@@ -159,19 +162,20 @@ def get_results(tbs, sample_count=1, reform=None):
                 al_fields[v], base_period
             )
             r_idx, r_cols = pd.factorize(res_al.service + "_r")
-            res_al["prix_r"] = res_al.reindex(r_cols, axis=1).to_numpy()[
+            res_al["pu_r"] = res_al.reindex(r_cols, axis=1).to_numpy()[
                 np.arange(len(res_al)), r_idx
             ]
-            res_al["cout_r"] = res_al.prix_r * res_al.quantité
+            res_al["prix_r"] = res_al.pu_r * res_al.quantité
 
     for n, df in res_al.groupby("service"):
         row = ["DEE", n]
-        count, value = extract(df, "cout", "quantité")
+        count, value = extract(df, "prix", "quantité")
         row.extend([count["mean"], count["count"]])
         row.extend(value)
         if reform:
-            _, r_value = extract(df, "cout_r", "quantité")
+            _, r_value = extract(df, "prix_r", "quantité")
             row.extend(r_value)
         rows.append(row)
+        dfs.append((n, df))
 
     return pd.DataFrame(rows, columns=result_index[0 : len(rows[0])]), dfs

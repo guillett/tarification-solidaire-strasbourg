@@ -168,9 +168,9 @@ class StatutReform(Reform):
                 (Ppis._10_entrees.bareme_qf, [Ppis._10_entrees.bareme_qf_reduit]),
             ]
             for overrider, overridens in reductions:
+                assert overrider.brackets is not None
                 for overriden in overridens:
-                    assert overriden.brackets
-                    assert overrider.brackets
+                    assert overriden.brackets is not None
                     overriden.brackets = overrider.brackets
 
             return local_parameters
@@ -209,14 +209,15 @@ class gristSimulationReform(Reform):
 class SheetBasedReform(Reform):
     def __init__(self, tbs, sheet):
         self.scales = {}
-        for i in range(1, sheet.ncols()):
-            name = sheet[0, i].value
-            brackets = []
-            for j in range(1, sheet.nrows()):
-                qf = sheet[j, 0].value
-                amount = sheet[j, i].value
-                brackets.append(new_bracket(qf, amount))
-            self.scales[name] = brackets
+        if sheet is not None:
+            for i in range(1, sheet.ncols()):
+                name = sheet[0, i].value
+                brackets = []
+                for j in range(1, sheet.nrows()):
+                    qf = sheet[j, 0].value
+                    amount = sheet[j, i].value
+                    brackets.append(new_bracket(qf, amount))
+                self.scales[name] = brackets
         super().__init__(tbs)
 
     def apply(self):
@@ -235,13 +236,20 @@ import ezodf
 
 
 def process_file_sheets(tbs, get_result_fnc, input_file, output_file):
-    doc = ezodf.opendoc(input_file)
+    if input_file:
+        doc = ezodf.opendoc(input_file)
+        scenarios = [(s.name, s) for s in doc.sheets]
+    else:
+        scenarios = [("base", None)]
+
     res = []
-    for s in doc.sheets:
-        sbr = SheetBasedReform(tbs, s)
+    for name, sheet in scenarios:
+        fisc = QfFiscalReform(tbs)
+        sbr = SheetBasedReform(fisc, sheet)
         sbrr = StatutReform(sbr)
-        v = get_result_fnc(tbs, 10, sbrr)
-        res.append((s.name, v))
+        reform = sbrr
+        v = get_result_fnc(tbs, 2, reform)
+        res.append((name, v))
 
     resumes = []
     gdfs = []
@@ -280,9 +288,19 @@ def process_file_sheets(tbs, get_result_fnc, input_file, output_file):
         "prix",
         "prix_r",
     ]
+    if input_file:
+        baremes = pd.read_excel(input_file, sheet_name=None)
+    else:
+        baremes = {}
+
     file = pd.ExcelWriter(output_file)
     pd.concat(resumes, ignore_index=True).to_excel(file, sheet_name="Résumé")
     for i, (scenario, values) in enumerate(res):
         values[0].to_excel(file, sheet_name=scenario)
-        gdfs[i][columns].to_excel(file, sheet_name=f"{scenario} détails")
+
+        if scenario in baremes:
+            baremes[scenario].to_excel(
+                file, sheet_name=f"{scenario} barèmes", index=False
+            )
+        # gdfs[i][columns].to_excel(file, sheet_name=f"{scenario} détails")
     file.close()

@@ -29,8 +29,7 @@ def set_ajustement_mensuel_num(df):
 
 def get_df():
     full_df = pd.read_excel(
-        os.getenv("DATA_FOLDER")
-        + "mobilite/extrait-Tableau_de_Bord_CTS_Valeurs 012023_ajout_qf_age.xlsx",
+        f"{os.getenv('DATA_FOLDER')}mobilite/extrait-Tableau_de_Bord_CTS_Valeurs 012023_ajout_qf_age.xlsx",
         sheet_name="QRD - Quantités",
     )
     set_ajustement_mensuel_num(full_df)
@@ -206,3 +205,10 @@ def get_results(tbs, sample_count=1, reform=None):
     result["ajustement_mensuel_num"] = complement_df.ajustement_mensuel_num
 
     return pd.DataFrame([row], columns=result_index[0 : len(row)]), [(name, result)]
+
+
+def server_get_results(tbs, sample_count=1, reform=None):
+    recap, [(n, df)] = get_results(tbs, sample_count, reform)
+    df["prix"] = df.pu_calc_ht * 12
+    df["prix_r"] = df.pu_calc_ht_r * 12
+    return recap, [(n, df)]

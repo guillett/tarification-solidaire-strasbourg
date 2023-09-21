@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+import os
 import sys
 
 sys.path.append("../technique")
@@ -9,7 +13,7 @@ import pandas as pd
 
 def get_df():
     return pd.read_excel(
-        "/home/thomas/Nextcloud/CodeursEnLiberte/EMS/sports/extractions_denombrement.ods"
+        f"{os.getenv('DATA_FOLDER')}sports/extractions_denombrement.ods"
     )
 
 
@@ -156,6 +160,7 @@ def build_data(df, categorie, sample_count=1):
     res = pd.DataFrame(
         data={
             "sample_id": sample_ids,
+            "individu_id": individu_df.famille_id,
             "prestation": inc(product_df.prestation),
             "qfrule": inc(product_df.qfrule),
             "qf_caf": famille_df.qf_caf,

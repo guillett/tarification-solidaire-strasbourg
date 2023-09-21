@@ -1,7 +1,6 @@
 import sys
 
 sys.path.append("../technique")
-sys.path.append("../culture")
 
 from dotenv import load_dotenv
 
@@ -121,7 +120,27 @@ def get_login():
 
 
 from scenario import process_file_sheets
+
+sys.path.append("../culture")
 from centre_choregraphique import get_results as centre_choregraphique_get_results
+from conservatoire import get_results as conservatoire_get_results
+
+sys.path.append("../sports")
+from sports import get_results as sports_get_results
+
+sys.path.append("../mobilite")
+from mobilite import server_get_results as mobilite_get_results
+
+sys.path.append("../dee")
+from dee import get_results as dee_get_results
+
+get_results_fncs = {
+    "ccs": centre_choregraphique_get_results,
+    "crr": conservatoire_get_results,
+    "cts": mobilite_get_results,
+    "dee": dee_get_results,
+    "sports": sports_get_results,
+}
 
 
 @application.route("/budget", methods=["POST"])
@@ -130,20 +149,27 @@ def budget():
     timestamp = get_timestamp()
     login = get_login()
 
-    if subject != "ccs":
-        raise Exception("CCS only")
+    if subject not in get_results_fncs:
+        raise Exception(f"Oupsy. {subject}")
 
-    if "file" not in request.files:
-        return
-    f = request.files["file"]
-    file_id = f"{subject}_{timestamp}_{login}"
-    input_filename = f"{UPLOAD_FOLDER}/baremes_{file_id}.ods"
-    f.save(input_filename)
+    if "file" in request.files:
+        f = request.files["file"]
+        file_id = f"{subject}_{timestamp}_{login}"
+        input_filename = f"{UPLOAD_FOLDER}/baremes_{file_id}.ods"
+        f.save(input_filename)
+
+        fd = os.open(input_filename, os.O_RDONLY)
+        size = os.fstat(fd).st_size
+        os.close(fd)
+
+        if size == 0:
+            input_filename = None
+    else:
+        input_filename = None
 
     output_filename = f"{UPLOAD_FOLDER}/resultats_{file_id}.xlsx"
-    process_file_sheets(
-        base, centre_choregraphique_get_results, input_filename, output_filename
-    )
+    get_results_fnc = get_results_fncs[subject]
+    process_file_sheets(base, get_results_fnc, input_filename, output_filename)
 
     return send_file(output_filename)
 
