@@ -67,6 +67,13 @@ fields = {
         "openfisca_output_variable": "strasbourg_piscine_cycle_prix",
         "bareme": lambda p: p.communes.strasbourg.piscine.cycle.bareme,
     },
+    "cycle2": {
+        "categorie": "cycle2",
+        "champ_pu": "pu cycle2",
+        "openfisca_input_variable": "strasbourg_piscine_abonnement_ce",
+        "openfisca_output_variable": "strasbourg_piscine_cycle2_prix",
+        "bareme": lambda p: p.communes.strasbourg.piscine.cycle.bareme,
+    },
     "stage été": {
         "categorie": "stage été",
         "champ_pu": "pu stage été",
