@@ -69,7 +69,7 @@ export default function Home({ domain, force }) {
           <fieldset>
             <legend>2. Modifiez le fichier Excel.</legend>
             <p>
-              Le fichier Excel permet d'évaluer plusieurs scénarios en
+              Le fichier Excel permet d’évaluer plusieurs scénarios en
               parallèle. Chaque onglet correspond à un scénario.
             </p>
             <p>
@@ -81,8 +81,8 @@ export default function Home({ domain, force }) {
             </p>
             <p>
               Chaque barème contient au moins un montant associé au QF 0 €, cela
-              signifie que ce montant s'applique à partir de 0 € de QF et
-              jusqu'au QF de la tranche suivante exclu.
+              signifie que ce montant s’applique à partir de 0 € de QF et
+              jusqu’au QF de la tranche suivante exclu.
             </p>
           </fieldset>
           <form
@@ -92,7 +92,7 @@ export default function Home({ domain, force }) {
           >
             <fieldset>
               <legend>
-                3. Lancez l'évaluation budgétaire en renvoyant le fichier Excel.
+                3. Lancez l’évaluation budgétaire en renvoyant le fichier Excel.
               </legend>
               <div>
                 <label htmlFor="file">Fichier de barèmes : </label>
