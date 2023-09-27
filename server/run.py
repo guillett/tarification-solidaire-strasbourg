@@ -109,7 +109,7 @@ def me():
 
 def get_login():
     if os.getenv("FLASK_DEBUG") == "1":
-        return "yolo"
+        return "thomas"
 
     if "email" in session:
         email = session["email"]
@@ -169,7 +169,7 @@ def budget():
 
     output_filename = f"{UPLOAD_FOLDER}/resultats_{file_id}.xlsx"
     get_results_fnc = get_results_fncs[subject]
-    process_file_sheets(base, get_results_fnc, input_filename, output_filename)
+    process_file_sheets(base, subject, get_results_fnc, input_filename, output_filename)
 
     return send_file(output_filename)
 

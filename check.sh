@@ -4,8 +4,8 @@ set +e
 
 for i in **/*.ipynb
 do
-    #jupyter execute "$i"
     echo $i
+    #jupyter execute "$i"
     # if [[ $? -ne 0 ]]; then
     #     echo $i
     #     break

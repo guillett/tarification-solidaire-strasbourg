@@ -46,10 +46,54 @@ export default function Home({ domain, force }) {
           <form
             method="post"
             encType="multipart/form-data"
+            action={`${domain}/template`}
+          >
+            <fieldset>
+              <legend>
+                1. Récupérez un fichier de barèmes pour votre direction.
+              </legend>
+              <div>
+                <p></p>
+                <label htmlFor="subject">Thématique : </label>
+                <select name="subject" id="subject">
+                  {options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit">Obtenir un fichier de barèmes</button>
+            </fieldset>
+          </form>
+          <fieldset>
+            <legend>2. Modifiez le fichier Excel.</legend>
+            <p>
+              Le fichier Excel permet d'évaluer plusieurs scénarios en
+              parallèle. Chaque onglet correspond à un scénario.
+            </p>
+            <p>
+              Un onglet du fichier Excel contient les différents barèmes de
+              votre direction. La première colonne correspond aux niveaux de QF.
+              La première ligne des colonnes suivantes les contient les noms de
+              chaque barème. Les lignes suivantes contiennent, les montants à
+              associer aux différentes tranches.
+            </p>
+            <p>
+              Chaque barème contient au moins un montant associé au QF 0 €, cela
+              signifie que ce montant s'applique à partir de 0 € de QF et
+              jusqu'au QF de la tranche suivante exclu.
+            </p>
+          </fieldset>
+          <form
+            method="post"
+            encType="multipart/form-data"
             action={`${domain}/budget`}
           >
             <fieldset>
-              <legend>Évaluation budgétaire</legend>
+              <legend>
+                3. Lancez l'évaluation budgétaire en renvoyant le fichier Excel.
+              </legend>
               <div>
                 <label htmlFor="file">Fichier de barèmes : </label>
                 <input
@@ -72,26 +116,10 @@ export default function Home({ domain, force }) {
               <button type="submit">Évaluer les scénarios</button>
             </fieldset>
           </form>
-          <form
-            method="post"
-            encType="multipart/form-data"
-            action={`${domain}/template`}
-          >
-            <fieldset>
-              <legend>Fichier de barèmes </legend>
-              <div>
-                <label htmlFor="subject">Thématique : </label>
-                <select name="subject" id="subject">
-                  {options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <button type="submit">Obtenir un fichier de barèmes</button>
-            </fieldset>
-          </form>
+          <p>
+            4. Récupérez et analysez les estimations de recettes pour chaque
+            scénario et chaque service payant.
+          </p>
           <div>
             <a href={`${domain}/logout`}>Se déconnecter</a>
           </div>

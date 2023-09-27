@@ -120,6 +120,7 @@ def build_data(df, res_df, sample_count=1):
                 np.repeat(res_df.pu_calc, df.quantité), sample_count
             ),
             "tp_base": np.tile(np.repeat(res_df.tp, df.quantité), sample_count),
+            "TYPOLOGIE": sample_famille_df.TYPOLOGIE,
         }
     )
 
@@ -151,6 +152,7 @@ def compute_result(
             "pu_calc_base": complement_df.pu_calc_base,
             "tp_base": complement_df.tp_base,
             "quantité": 12,
+            "TYPOLOGIE": complement_df.TYPOLOGIE,
         }
     )
     sample_res["ecart"] = sample_res.pu_calc_ht - sample_res.pu_fichier
@@ -203,6 +205,7 @@ def get_results(tbs, sample_count=1, reform=None):
     result["qf_caf"] = data["input_data_frame_by_entity"]["famille"]["qf_caf"]
     result["qf_fiscal"] = data["input_data_frame_by_entity"]["famille"]["qf_fiscal"]
     result["ajustement_mensuel_num"] = complement_df.ajustement_mensuel_num
+    result["prix_input"] = complement_df.pu_fichier
 
     return pd.DataFrame([row], columns=result_index[0 : len(row)]), [(name, result)]
 

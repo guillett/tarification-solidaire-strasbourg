@@ -1,5 +1,6 @@
 *.dat
 .env
+server/files/*
 .ipynb_checkpoints
 limits.pickle
 mapping_qf_caf_ems*.pickle

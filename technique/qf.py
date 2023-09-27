@@ -85,13 +85,13 @@ qftype_override = LogAccessDict(
         "QF_AGE418": "QF",
         "QF_AGE1925": "QF",
         "QF_AGE2664": "QF",
-        "QF_AGE65P": "QF<=3000",
+        "QF_AGE65P": "QF",
         "QF_PMR": "QF<=2000",
         "QF_EMERAUDE": "QF<=2000",
         # Piscine
         # via mapping QF CAF/EMS sur les données individuelles CTS
         "QF_HANDICAP": "QF",
-        "QF_CADA": "QF<= 100",
+        "QF_CADA": "QF<=100",
         # 0 pour QF EMS
         "QF_ASS": "QF<=500",
         # Pas de nouvelles du CROUS/CNOUS
@@ -142,9 +142,12 @@ def determine_qf(df, data=qf_mapping):
             n = len(indexes_in_group)
             v = qfrules(rule)(n)
         except Exception as e:
-            # raise e
             bogus.append((rule, n))
-            v = unif_qf(rule)(n)
+            try:
+                v = unif_qf(rule)(n)
+            except Exception as e:
+                print((rule, n))
+                raise e
         finally:
             df.loc[indexes_in_group, "qf_caf"] = v.CAF.values
             df.loc[indexes_in_group, "qf_fiscal"] = v.EMS.values

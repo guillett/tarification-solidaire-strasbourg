@@ -45,9 +45,15 @@ class strasbourg_metropole_quotient_familial(Variable):
         return famille("qf_fiscal", period)
 
 
+class sslr(Variable):
+    def formula(individu, period, parameters):
+        return 0
+
+
 class QfFiscalReform(Reform):
     def apply(self):
         self.update_variable(strasbourg_metropole_quotient_familial)
+        self.update_variable(sslr)
 
 
 def extract_max_value(bareme):
@@ -87,95 +93,39 @@ class CEReform(Reform):
         self.modify_parameters(modifier_function=modify_ce_parameters)
 
 
+class strasbourg_conservatoire_base_ressources(Variable):
+    def formula(famille, period):
+        return famille("qf_fiscal", period)
+
+
+class CRRReform(Reform):
+    def apply(self):
+        self.update_variable(strasbourg_conservatoire_base_ressources)
+
+
+class strasbourg_sports_reduit(Variable):
+    def formula(individu, period):
+        return (
+            +(individu("age", period) <= 18)
+            + (individu("taux_incapacite", period) >= 0.8)
+            + individu.famille("agent_ems", period)
+        )
+
+
+class eurometropole_strasbourg_tarification_solidaire_transport_eligible_tarif_reduit(
+    Variable
+):
+    def formula(individu, period):
+        taux_incapacite = individu("taux_incapacite", period)
+        return taux_incapacite >= 0.80
+
+
 class StatutReform(Reform):
     def apply(self):
-        def modify_ce_parameters(local_parameters):
-            Ps = local_parameters.communes.strasbourg
-            Pccs = Ps.centre_choregraphique
-            Pcons = Ps.conservatoire
-            Pcts = local_parameters.metropoles.strasbourg.tarification_solidaire
-            Ppat = Ps.patinoire
-            Ppis = Ps.piscine
-            reductions = [
-                # CCS
-                (Pccs.eveil.TP, [Pccs.eveil.RA, Pccs.eveil.RB]),
-                (
-                    Pccs.enfant._1_cours.TP,
-                    [Pccs.enfant._1_cours.RA, Pccs.enfant._1_cours.RB],
-                ),
-                (
-                    Pccs.enfant._2_cours.TP,
-                    [Pccs.enfant._2_cours.RA, Pccs.enfant._2_cours.RB],
-                ),
-                (
-                    Pccs.enfant._3_cours.TP,
-                    [Pccs.enfant._3_cours.RA, Pccs.enfant._3_cours.RB],
-                ),
-                (
-                    Pccs.enfant._4_cours.TP,
-                    [Pccs.enfant._4_cours.RA, Pccs.enfant._4_cours.RB],
-                ),
-                (
-                    Pccs.adulte._1_cours.TP,
-                    [Pccs.adulte._1_cours.RA, Pccs.adulte._1_cours.RB],
-                ),
-                (
-                    Pccs.adulte._2_cours.TP,
-                    [Pccs.adulte._2_cours.RA, Pccs.adulte._2_cours.RB],
-                ),
-                (
-                    Pccs.adulte._3_cours.TP,
-                    [Pccs.adulte._3_cours.RA, Pccs.adulte._3_cours.RB],
-                ),
-                (
-                    Pccs.adulte._4_cours.TP,
-                    [Pccs.adulte._4_cours.RA, Pccs.adulte._4_cours.RB],
-                ),
-                (
-                    Pccs.adulte._1_cours_trimestre.TP,
-                    [
-                        Pccs.adulte._1_cours_trimestre.RA,
-                        Pccs.adulte._1_cours_trimestre.RB,
-                    ],
-                ),
-                # Conservatoire
-                (
-                    Pcons.traditionnel.habitant_ems.enfant_12,
-                    [Pcons.traditionnel.agent_ems.enfant_12],
-                ),
-                # CTS
-                (
-                    Pcts.bareme,
-                    [
-                        Pcts.bareme_reduit,
-                        Pcts.bareme_emeraude,
-                        Pcts.annuel.bareme,
-                        Pcts.annuel.bareme_reduit,
-                    ],
-                ),
-                # Patinoire
-                (
-                    Ppat.entree_unitaire.bareme_qf,
-                    [Ppat.entree_unitaire.bareme_qf_reduit],
-                ),
-                (Ppat._10_entrees.bareme_qf, [Ppat._10_entrees.bareme_qf_reduit]),
-                # Piscine
-                (Ppis.abonnement_annuel.bareme, [Ppis.abonnement_annuel.bareme_reduit]),
-                (
-                    Ppis.entree_unitaire.bareme_qf,
-                    [Ppis.entree_unitaire.bareme_qf_reduit],
-                ),
-                (Ppis._10_entrees.bareme_qf, [Ppis._10_entrees.bareme_qf_reduit]),
-            ]
-            for overrider, overridens in reductions:
-                assert overrider.brackets is not None
-                for overriden in overridens:
-                    assert overriden.brackets is not None
-                    overriden.brackets = overrider.brackets
-
-            return local_parameters
-
-        self.modify_parameters(modifier_function=modify_ce_parameters)
+        self.update_variable(strasbourg_sports_reduit)
+        self.update_variable(
+            eurometropole_strasbourg_tarification_solidaire_transport_eligible_tarif_reduit
+        )
 
 
 class gristSimulationReform(Reform):
@@ -215,7 +165,11 @@ class SheetBasedReform(Reform):
                 brackets = []
                 for j in range(1, sheet.nrows()):
                     qf = sheet[j, 0].value
+                    if qf is None:
+                        continue
                     amount = sheet[j, i].value
+                    if amount is None:
+                        continue
                     brackets.append(new_bracket(qf, amount))
                 self.scales[name] = brackets
         super().__init__(tbs)
@@ -235,20 +189,23 @@ class SheetBasedReform(Reform):
 import ezodf
 
 
-def process_file_sheets(tbs, get_result_fnc, input_file, output_file):
+def process_file_sheets(tbs, subject, get_result_fnc, input_file, output_file):
     if input_file:
+        n = 10
         doc = ezodf.opendoc(input_file)
         scenarios = [(s.name, s) for s in doc.sheets]
     else:
+        n = 2
         scenarios = [("base", None)]
 
     res = []
     for name, sheet in scenarios:
-        fisc = QfFiscalReform(tbs)
+        crr = CRRReform(tbs)
+        fisc = QfFiscalReform(crr)
         sbr = SheetBasedReform(fisc, sheet)
         sbrr = StatutReform(sbr)
         reform = sbrr
-        v = get_result_fnc(tbs, 2, reform)
+        v = get_result_fnc(tbs, n, reform)
         res.append((name, v))
 
     resumes = []
@@ -278,16 +235,6 @@ def process_file_sheets(tbs, get_result_fnc, input_file, output_file):
         resume.insert(loc=0, column="Scénario", value=scenario)
         resumes.append(resume)
 
-    columns = [
-        "service",
-        "sample_id",
-        "individu_id",
-        "qf_caf",
-        "qf_fiscal",
-        "prix_input",
-        "prix",
-        "prix_r",
-    ]
     if input_file:
         baremes = pd.read_excel(input_file, sheet_name=None)
     else:
@@ -296,11 +243,33 @@ def process_file_sheets(tbs, get_result_fnc, input_file, output_file):
     file = pd.ExcelWriter(output_file)
     pd.concat(resumes, ignore_index=True).to_excel(file, sheet_name="Résumé")
     for i, (scenario, values) in enumerate(res):
-        values[0].to_excel(file, sheet_name=scenario)
+        if subject != "cts":
+            values[0].to_excel(file, sheet_name=scenario)
+
+        def pf(d, pavant, papres):
+            i = ["TYPOLOGIE", "prix_avant"]
+            c = ["prix_apres"]
+            groups = [*i, *c, "sample_id"]
+            dr = d.rename(columns={pavant: "prix_avant", papres: "prix_apres"})
+            dv = (
+                dr.groupby(groups)
+                .ajustement_mensuel_num.apply(len)
+                .groupby(groups[:-1])
+                .mean()
+                .reset_index()
+            )
+            return dv.pivot(index=i, columns=c, values="ajustement_mensuel_num")
+
+        if subject == "cts":
+            pivot_count = pf(gdfs[i], "pu_calc", "pu_calc_r")
+            pivot_count.to_excel(file, sheet_name=f"{scenario} tableau abonnements")
+            pivot_sum = pf(gdfs[i], "pu_calc_ht", "pu_calc_ht_r")
+            pivot_sum.to_excel(file, sheet_name=f"{scenario} tableau recettes")
 
         if scenario in baremes:
             baremes[scenario].to_excel(
                 file, sheet_name=f"{scenario} barèmes", index=False
             )
-        # gdfs[i][columns].to_excel(file, sheet_name=f"{scenario} détails")
+        gdfs[i].to_pickle(f"{output_file}_{scenario}.pickle")
+
     file.close()

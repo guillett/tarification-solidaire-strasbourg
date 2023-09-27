@@ -7,47 +7,38 @@ baremes = {
     "dee_std": lambda p: p.metropoles.strasbourg.tarifs_cantine,
     "dee_veg": lambda p: p.metropoles.strasbourg.tarifs_repas_vege,
     "dee_pan": lambda p: p.metropoles.strasbourg.tarifs_repas_panier,
-    "ccs_eveil": lambda p: p.communes.strasbourg.centre_choregraphique.eveil.TP,
     "ccs_eveil_tp": lambda p: p.communes.strasbourg.centre_choregraphique.eveil.TP,
     "ccs_eveil_ra": lambda p: p.communes.strasbourg.centre_choregraphique.eveil.RA,
     "ccs_eveil_rb": lambda p: p.communes.strasbourg.centre_choregraphique.eveil.RB,
-    "ccs_enf_1c": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._1_cours.TP,
     "ccs_enf_1c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._1_cours.TP,
     "ccs_enf_1c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._1_cours.RA,
     "ccs_enf_1c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._1_cours.RB,
-    "ccs_enf_2c": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._2_cours.TP,
     "ccs_enf_2c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._2_cours.TP,
     "ccs_enf_2c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._2_cours.RA,
     "ccs_enf_2c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._2_cours.RB,
-    "ccs_enf_3c": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._3_cours.TP,
     "ccs_enf_3c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._3_cours.TP,
     "ccs_enf_3c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._3_cours.RA,
     "ccs_enf_3c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._3_cours.RB,
-    "ccs_enf_4c": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._4_cours.TP,
     "ccs_enf_4c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._4_cours.TP,
     "ccs_enf_4c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._4_cours.RA,
     "ccs_enf_4c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.enfant._4_cours.RB,
-    "ccs_adu_1c_tri": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours_trimestre.TP,
     "ccs_adu_1c_tri_tp": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours_trimestre.TP,
     "ccs_adu_1c_tri_ra": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours_trimestre.RA,
     "ccs_adu_1c_tri_rb": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours_trimestre.RB,
-    "ccs_adu_1c": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours.TP,
     "ccs_adu_1c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours.TP,
     "ccs_adu_1c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours.RA,
     "ccs_adu_1c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._1_cours.RB,
-    "ccs_adu_2c": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._2_cours.TP,
     "ccs_adu_2c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._2_cours.TP,
     "ccs_adu_2c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._2_cours.RA,
     "ccs_adu_2c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._2_cours.RB,
-    "ccs_adu_3c": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._3_cours.TP,
     "ccs_adu_3c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._3_cours.TP,
     "ccs_adu_3c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._3_cours.RA,
     "ccs_adu_3c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._3_cours.RB,
-    "ccs_adu_4c": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._4_cours.TP,
     "ccs_adu_4c_tp": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._4_cours.TP,
     "ccs_adu_4c_ra": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._4_cours.RA,
     "ccs_adu_4c_rb": lambda p: p.communes.strasbourg.centre_choregraphique.adulte._4_cours.RB,
     "crr_autre_dominante": lambda p: p.communes.strasbourg.conservatoire.autre_dominante,
+    "crr_parcours_personnalise": lambda p: p.communes.strasbourg.conservatoire.parcours_personnalise,
     "crr_bourse": lambda p: p.communes.strasbourg.conservatoire.bourse,
     "crr_cycle": lambda p: p.communes.strasbourg.conservatoire.cycle,
     "crr_enf12_agent": lambda p: p.communes.strasbourg.conservatoire.traditionnel.agent_ems.enfant_12,
@@ -65,6 +56,8 @@ baremes = {
     "cts_base": lambda p: p.metropoles.strasbourg.tarification_solidaire.bareme,
     "cts_reduit": lambda p: p.metropoles.strasbourg.tarification_solidaire.bareme_reduit,
     "cts_emeraude": lambda p: p.metropoles.strasbourg.tarification_solidaire.bareme_emeraude,
+    "cts_base_annuel": lambda p: p.metropoles.strasbourg.tarification_solidaire.annuel.bareme,
+    "cts_base_reduit": lambda p: p.metropoles.strasbourg.tarification_solidaire.annuel.bareme_reduit,
     "pat_pu": lambda p: p.communes.strasbourg.patinoire.entree_unitaire.bareme_qf,
     "pat_pu_reduit": lambda p: p.communes.strasbourg.patinoire.entree_unitaire.bareme_qf_reduit,
     "pat_10": lambda p: p.communes.strasbourg.patinoire._10_entrees.bareme_qf,
@@ -110,14 +103,9 @@ def build_table_data(tbs):
 import ezodf
 
 bareme_selectors = {
-    "ccs": lambda b: (
-        b.startswith("ccs")
-        and (not b.endswith("_tp") and not b.endswith("_ra") and not b.endswith("_rb"))
-    ),
+    "ccs": lambda b: b.startswith("ccs"),
     "crr": lambda b: b.startswith("crr"),
-    "sports": lambda b: (
-        (b.startswith("pat") or b.startswith("pis")) and not b.endswith("_reduit")
-    ),
+    "sports": lambda b: (b.startswith("pat") or b.startswith("pis")),
     "dee": lambda b: b.startswith("a") or b.startswith("dee"),
     "cts": lambda b: b.startswith("cts"),
 }
@@ -128,7 +116,7 @@ def build_sheet(tbs, subject, file_path):
         raise Exception(f"Oupsy {subject}")
 
     ods = ezodf.newdoc("ods", file_path)
-    parameters = tbs.get_parameters_at_instant("2023-09-01")
+    parameters = tbs.get_parameters_at_instant("2023-04-01")
 
     bareme_names = []
     selector = bareme_selectors[subject]
