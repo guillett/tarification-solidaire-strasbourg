@@ -6,7 +6,7 @@ Description=Python server
 User=main
 Group=aides_jeunes
 WorkingDirectory=/home/main/experiment/tarification-solidaire-strasbourg/server
-ExecStart=/home/main/experiment/venv/bin/gunicorn run
+ExecStart=/home/main/experiment/venv/bin/gunicorn run --config config.py
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
