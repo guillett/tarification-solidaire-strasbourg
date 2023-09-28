@@ -133,8 +133,12 @@ def compute_result(
     sample_calc = scenario.simulation.calculate(
         "eurometropole_strasbourg_tarification_transport", period
     )
-    sample_reduit = scenario.simulation.calculate(
-        "eurometropole_strasbourg_tarification_solidaire_transport_eligible_tarif_reduit",
+    sample_reduit_age = scenario.simulation.calculate(
+        "eurometropole_strasbourg_tarification_solidaire_transport_eligible_tarif_reduit_age",
+        period,
+    )
+    sample_reduit_handicap = scenario.simulation.calculate(
+        "eurometropole_strasbourg_tarification_solidaire_transport_eligible_tarif_reduit_handicap",
         period,
     )
 
@@ -146,7 +150,9 @@ def compute_result(
             "recettes": sample_calc / 1.1 * complement_df.ajustement_mensuel_num,
             "pu_calc": sample_calc,
             "pu_calc_ht": sample_calc / 1.1 * complement_df.ajustement_mensuel_num,
-            "reduit": sample_reduit,
+            "reduit_age": sample_reduit_age,
+            "reduit_handicap": sample_reduit_handicap,
+            "reduit": sample_reduit_age + sample_reduit_handicap,
             "idx": complement_df.idx,
             "pu_fichier": complement_df.pu_fichier,
             "pu_calc_base": complement_df.pu_calc_base,

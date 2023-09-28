@@ -112,20 +112,9 @@ class strasbourg_sports_reduit(Variable):
         )
 
 
-class eurometropole_strasbourg_tarification_solidaire_transport_eligible_tarif_reduit(
-    Variable
-):
-    def formula(individu, period):
-        taux_incapacite = individu("taux_incapacite", period)
-        return taux_incapacite >= 0.80
-
-
 class StatutReform(Reform):
     def apply(self):
         self.update_variable(strasbourg_sports_reduit)
-        self.update_variable(
-            eurometropole_strasbourg_tarification_solidaire_transport_eligible_tarif_reduit
-        )
 
 
 class gristSimulationReform(Reform):
