@@ -162,6 +162,8 @@ class SheetBasedReform(Reform):
         if sheet is not None:
             for i in range(1, sheet.ncols()):
                 name = sheet[0, i].value
+                if name is None:
+                    continue
                 brackets = []
                 for j in range(1, sheet.nrows()):
                     qf = sheet[j, 0].value
@@ -193,7 +195,7 @@ def process_file_sheets(tbs, subject, get_result_fnc, input_file, output_file):
     if input_file:
         n = 10
         doc = ezodf.opendoc(input_file)
-        scenarios = [(s.name, s) for s in doc.sheets]
+        scenarios = [(s.name, s) for s in doc.sheets if not s.name.startswith('_')]
     else:
         n = 2
         scenarios = [("base", None)]
@@ -236,7 +238,23 @@ def process_file_sheets(tbs, subject, get_result_fnc, input_file, output_file):
         resumes.append(resume)
 
     if input_file:
-        baremes = pd.read_excel(input_file, sheet_name=None)
+        baremes_data = pd.read_excel(input_file, sheet_name=None)
+        baremes = {}
+        for n in baremes_data:
+            b = baremes_data[n]
+            if b.columns[0] != 'QF':
+                continue
+
+            c = []
+            for column_name in b.columns:
+                if column_name.startswith('Unnamed'):
+                    break
+                else:
+                    c.append(column_name)
+
+            nrows = b.QF[~b.QF.isna()].index.max()+1
+
+            baremes[n] = pd.read_excel(input_file, sheet_name=n, usecols=c, nrows=nrows)
     else:
         baremes = {}
 
@@ -250,15 +268,20 @@ def process_file_sheets(tbs, subject, get_result_fnc, input_file, output_file):
             i = ["TYPOLOGIE", "prix_avant"]
             c = ["prix_apres"]
             groups = [*i, *c, "sample_id"]
-            dr = d.rename(columns={pavant: "prix_avant", papres: "prix_apres"})
+            dn = d.rename(columns={pavant: "prix_avant", papres: "prix_apres"})
             dv = (
-                dr.groupby(groups)
+                dn.groupby(groups)
                 .ajustement_mensuel_num.apply(len)
                 .groupby(groups[:-1])
                 .mean()
                 .reset_index()
             )
-            return dv.pivot(index=i, columns=c, values="ajustement_mensuel_num")
+            dr = dv.pivot(index=i, columns=c, values="ajustement_mensuel_num")
+            dr.columns = pd.MultiIndex.from_tuples([('prix_apres', round(p, 2)) for p in dr.columns])
+
+            dl = dr.reset_index()
+            dl['prix_avant'] = dl['prix_avant'].round(2)
+            return dl.set_index(['TYPOLOGIE', 'prix_avant'])
 
         if subject == "cts":
             pivot_count = pf(gdfs[i], "pu_calc", "pu_calc_r")
