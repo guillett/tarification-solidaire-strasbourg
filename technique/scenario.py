@@ -195,7 +195,7 @@ def process_file_sheets(tbs, subject, get_result_fnc, input_file, output_file):
     if input_file:
         n = 10
         doc = ezodf.opendoc(input_file)
-        scenarios = [(s.name, s) for s in doc.sheets if not s.name.startswith('_')]
+        scenarios = [(s.name, s) for s in doc.sheets if not s.name.startswith("_")]
     else:
         n = 2
         scenarios = [("base", None)]
@@ -242,17 +242,17 @@ def process_file_sheets(tbs, subject, get_result_fnc, input_file, output_file):
         baremes = {}
         for n in baremes_data:
             b = baremes_data[n]
-            if b.columns[0] != 'QF':
+            if b.columns[0] != "QF":
                 continue
 
             c = []
             for column_name in b.columns:
-                if column_name.startswith('Unnamed'):
+                if column_name.startswith("Unnamed"):
                     break
                 else:
                     c.append(column_name)
 
-            nrows = b.QF[~b.QF.isna()].index.max()+1
+            nrows = b.QF[~b.QF.isna()].index.max() + 1
 
             baremes[n] = pd.read_excel(input_file, sheet_name=n, usecols=c, nrows=nrows)
     else:
@@ -277,11 +277,13 @@ def process_file_sheets(tbs, subject, get_result_fnc, input_file, output_file):
                 .reset_index()
             )
             dr = dv.pivot(index=i, columns=c, values="ajustement_mensuel_num")
-            dr.columns = pd.MultiIndex.from_tuples([('prix_apres', round(p, 2)) for p in dr.columns])
+            dr.columns = pd.MultiIndex.from_tuples(
+                [("prix_apres", round(p, 2)) for p in dr.columns]
+            )
 
             dl = dr.reset_index()
-            dl['prix_avant'] = dl['prix_avant'].round(2)
-            return dl.set_index(['TYPOLOGIE', 'prix_avant'])
+            dl["prix_avant"] = dl["prix_avant"].round(2)
+            return dl.set_index(["TYPOLOGIE", "prix_avant"])
 
         if subject == "cts":
             pivot_count = pf(gdfs[i], "pu_calc", "pu_calc_r")
