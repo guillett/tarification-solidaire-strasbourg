@@ -98,9 +98,15 @@ class strasbourg_conservatoire_base_ressources(Variable):
         return famille("qf_fiscal", period)
 
 
+class strasbourg_conservatoire_bourse(Variable):
+    def formula(famille, period):
+        return 0
+
+
 class CRRReform(Reform):
     def apply(self):
         self.update_variable(strasbourg_conservatoire_base_ressources)
+        self.update_variable(strasbourg_conservatoire_bourse)
 
 
 class strasbourg_sports_reduit(Variable):
@@ -180,6 +186,13 @@ class SheetBasedReform(Reform):
 import ezodf
 
 
+def build_reform(tbs, sheet):
+    crr = CRRReform(tbs)
+    fisc = QfFiscalReform(crr)
+    sbr = SheetBasedReform(fisc, sheet)
+    return StatutReform(sbr)
+
+
 def process_file_sheets(tbs, subject, get_result_fnc, input_file, output_file):
     if input_file:
         n = 10
@@ -190,14 +203,12 @@ def process_file_sheets(tbs, subject, get_result_fnc, input_file, output_file):
         scenarios = [("base", None)]
 
     res = []
+    reforms = []
     for name, sheet in scenarios:
-        crr = CRRReform(tbs)
-        fisc = QfFiscalReform(crr)
-        sbr = SheetBasedReform(fisc, sheet)
-        sbrr = StatutReform(sbr)
-        reform = sbrr
+        reform = build_reform(tbs, sheet)
         v = get_result_fnc(tbs, n, reform)
         res.append((name, v))
+        reforms.append((name, reform))
 
     resumes = []
     gdfs = []
@@ -287,3 +298,5 @@ def process_file_sheets(tbs, subject, get_result_fnc, input_file, output_file):
         gdfs[i].to_pickle(f"{output_file}_{scenario}.pickle")
 
     file.close()
+
+    return reforms

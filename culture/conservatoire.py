@@ -12,7 +12,7 @@ import pandas as pd
 
 
 def get_df():
-    df = pd.read_excel(f"{os.getenv('DATA_FOLDER')}minimales/conservatoire_3.xlsx")
+    df = pd.read_excel(f"{os.getenv('DATA_FOLDER')}minimales/conservatoire_5.xlsx")
 
     df.agent.fillna(0, inplace=True)
     df["habitant EMS"].fillna(0, inplace=True)
@@ -52,7 +52,6 @@ def get_df():
 
 def build_data(df, sample_count=1):
     count = len(df)
-    sample_count = 1
     individu_df = pd.DataFrame(
         {
             "famille_id": list(range(count * sample_count)),
@@ -64,14 +63,16 @@ def build_data(df, sample_count=1):
     famille_df = pd.DataFrame(
         {
             "sample_id": sample_ids,
-            "strasbourg_conservatoire_base_ressources": np.tile(
+            "strasbourg_conservatoire_base_ressources_historique": np.tile(
                 df["ressources"], sample_count
             ),
             "strasbourg_conservatoire_nombre_cycles": np.tile(
                 df["Cycle.1"], sample_count
             ),
             "qfrule": np.tile(df.qfrule, sample_count),
-            "strasbourg_conservatoire_qf_bourse": np.tile(df.qf, sample_count),
+            "strasbourg_conservatoire_bourse_historique": np.tile(
+                df.strasbourg_conservatoire_bourse_historique, sample_count
+            ),
             "agent_ems": np.tile(df.agent, sample_count),
             "habitant_ems": np.tile(df["habitant EMS"], sample_count),
             # "strasbourg_conservatoire_enfant_dans_la_fratrie": np.tile(df["Enfant de la fratrie"], sample_count),
@@ -96,6 +97,7 @@ def build_data(df, sample_count=1):
             "qf_caf": famille_df.qf_caf,
             "qf_fiscal": famille_df.qf_fiscal,
             "prix_input": np.tile(df.MontantFactureSurEleve, sample_count),
+            "bourse": famille_df.strasbourg_conservatoire_bourse_historique,
         }
     )
 
