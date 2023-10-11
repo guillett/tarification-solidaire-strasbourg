@@ -158,12 +158,12 @@ class SheetBasedReform(Reform):
             for i in range(1, sheet.ncols()):
                 name = sheet[0, i].value
                 if name is None:
-                    continue
+                    break
                 brackets = []
                 for j in range(1, sheet.nrows()):
                     qf = sheet[j, 0].value
                     if qf is None:
-                        continue
+                        break
                     amount = sheet[j, i].value
                     if amount is None:
                         continue
@@ -173,11 +173,12 @@ class SheetBasedReform(Reform):
 
     def apply(self):
         def modify_parameters_grist(local_parameters):
-            for b in baremes:
-                if b in self.scales:
-                    brackets = self.scales[b]
-                    bb = baremes[b](local_parameters)
-                    bb.brackets = brackets
+            for name in self.scales:
+                if name not in baremes:
+                    raise BaseException(f"Oups {name}")
+                brackets = self.scales[name]
+                bb = baremes[name](local_parameters)
+                bb.brackets = brackets
             return local_parameters
 
         self.modify_parameters(modifier_function=modify_parameters_grist)
@@ -201,6 +202,11 @@ def process_file_sheets(tbs, subject, get_result_fnc, input_file, output_file):
     else:
         n = 2
         scenarios = [("base", None)]
+
+    for name, sheet in scenarios:
+        if name.startswith("!"):
+            scenarios = [(name, sheet)]
+            break
 
     res = []
     reforms = []
