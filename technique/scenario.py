@@ -282,14 +282,9 @@ def process_file_sheets(tbs, subject, get_result_fnc, input_file, output_file):
                 .mean()
                 .reset_index()
             )
-            dr = dv.pivot(index=i, columns=c, values="ajustement_mensuel_num")
-            dr.columns = pd.MultiIndex.from_tuples(
-                [("prix_apres", round(p, 2)) for p in dr.columns]
-            )
-
-            dl = dr.reset_index()
-            dl["prix_avant"] = dl["prix_avant"].round(2)
-            return dl.set_index(["TYPOLOGIE", "prix_avant"])
+            dv["prix_avant"] = dv["prix_avant"].round(2)
+            dv["prix_apres"] = dv["prix_apres"].round(2)
+            return dv
 
         if subject == "cts":
             pivot_count = pf(gdfs[i], "pu_calc", "pu_calc_r")
