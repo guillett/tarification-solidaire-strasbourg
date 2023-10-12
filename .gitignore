@@ -4,7 +4,9 @@ server/files/*
 .ipynb_checkpoints
 limits.pickle
 mapping_qf_caf_ems*.pickle
+*.png
 *.profile
 __pycache__
 *.ods*
+server/log
 *.xlsx

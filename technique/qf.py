@@ -15,6 +15,17 @@ else:
 qf_min = 0
 qf_max = 4000
 
+# coef = np.select(
+#     [
+#         qf_mapping.TYPOLOGIE == "Isolé(s) sans enfant",
+#         qf_mapping.TYPOLOGIE == "Famille monoparentale",
+#     ],
+#     [2/1.5, 2.5 / 2],
+#     default=1,
+# )
+
+# qf_mapping['EMS'] = qf_mapping.EMS / coef
+
 
 def gen_real_qf_df(data):
     def real_qf_df(mi, ma, s):
@@ -49,13 +60,13 @@ def fake_formula(caf):
 def unif_qf_df(mi, ma, s):
     v = np.random.randint(mi, ma, s)
     return pd.DataFrame(
-        data={"CAF": v, "EMS": v, "TYPOLOGIE": "NA"}
+        data={"CAF": v, "EMS": v, "TYPOLOGIE": "Couple avec enfant(s)"}
     )  # fake_formula(v)})
 
 
 def constant_qf_df(_, mi, ma, s):
     v = np.ones(s) * (mi + ma - 1) / 2
-    return pd.DataFrame(data={"CAF": v, "EMS": v, "TYPOLOGIE": "NA"})
+    return pd.DataFrame(data={"CAF": v, "EMS": v, "TYPOLOGIE": "Couple avec enfant(s)"})
 
 
 class LogAccessDict(dict):
@@ -112,6 +123,7 @@ qftype_override = LogAccessDict(
         "QF_CCS_TP": "QF",
         "QF_CCS_RA": "QF<=3000",
         "QF_CCS_RB": "QF<=2000",
+        "QF_CCS_RC": "QF<=3000",
     }
 )
 
@@ -127,6 +139,39 @@ def determine_qf_avec_enfants(df):
 
 
 def determine_qf(df, data=qf_mapping):
+    df["qf_caf"] = 0
+    df["qf_fiscal"] = 0
+    df["TYPOLOGIE"] = ""
+    qf_groups = df.groupby(by=["qfrule"]).groups
+
+    real_qf_df = gen_real_qf_df(data)
+    qfrules = dyn_rules(real_qf_df, qf_min, qf_max)
+    bogus = []
+    for key in qf_groups:
+        try:
+            indexes_in_group = qf_groups[key]
+            rule = key if key not in qftype_override else qftype_override[key]
+            n = len(indexes_in_group)
+            v = qfrules(rule)(n)
+        except Exception as e:
+            bogus.append((rule, n))
+            try:
+                v = unif_qf(rule)(n)
+            except Exception as e:
+                print((rule, n))
+                raise e
+        finally:
+            df.loc[indexes_in_group, "qf_caf"] = v.CAF.values
+            df.loc[indexes_in_group, "qf_fiscal"] = v.EMS.values
+            df.loc[indexes_in_group, "TYPOLOGIE"] = v.TYPOLOGIE.values
+    if bogus:
+        r = "\n".join([f"{r} ({n})" for r, n in bogus])
+        warnings.warn(f"Bogus rules:\n{r}")
+
+
+# La séparation par sample_id ralentit trop les estimations pour la DEE.
+# L'imprécision générée n'est pas très grande.
+def determine_qf_by_sample(df, data=qf_mapping):
     df["qf_caf"] = 0
     df["qf_fiscal"] = 0
     df["TYPOLOGIE"] = ""

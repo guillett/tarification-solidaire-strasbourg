@@ -194,9 +194,13 @@ def build_reform(tbs, sheet):
     return StatutReform(sbr)
 
 
-def process_file_sheets(tbs, subject, get_result_fnc, input_file, output_file):
+def process_file_sheets(tbs, subject, source, get_result_fnc, input_file, output_file):
     if input_file:
         n = 10
+        if subject == "ccs" and source == "insee":
+            n = "sample_id#QFEMS"
+        if subject == "crr" and source == "insee":
+            n = "sample_id#QFEMS"
         doc = ezodf.opendoc(input_file)
         scenarios = [(s.name, s) for s in doc.sheets if not s.name.startswith("_")]
     else:
@@ -212,7 +216,7 @@ def process_file_sheets(tbs, subject, get_result_fnc, input_file, output_file):
     reforms = []
     for name, sheet in scenarios:
         reform = build_reform(tbs, sheet)
-        v = get_result_fnc(tbs, n, reform)
+        v = get_result_fnc(tbs, n, reform, source)
         res.append((name, v))
         reforms.append((name, reform))
 

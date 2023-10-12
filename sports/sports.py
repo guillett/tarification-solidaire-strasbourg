@@ -95,6 +95,34 @@ fields = {
         "openfisca_output_variable": "strasbourg_piscine_stage_5_seances_prix",
         "bareme": lambda p: p.communes.strasbourg.piscine.stage_5_seances.bareme,
     },
+    "activite": {
+        "categorie": "activite",
+        "champ_pu": "pu activite",
+        "openfisca_input_variable": "strasbourg_piscine_abonnement_ce",
+        "openfisca_output_variable": "strasbourg_piscine_activite_prix",
+        "bareme": lambda p: p.communes.strasbourg.piscine.activite.unitaire,
+    },
+    "activite 10": {
+        "categorie": "activite 10",
+        "champ_pu": "pu activite 10",
+        "openfisca_input_variable": "strasbourg_piscine_abonnement_ce",
+        "openfisca_output_variable": "strasbourg_piscine_activite_10_prix",
+        "bareme": lambda p: p.communes.strasbourg.piscine.activite._10,
+    },
+    "aquabike": {
+        "categorie": "aquabike",
+        "champ_pu": "pu aquabike",
+        "openfisca_input_variable": "strasbourg_piscine_abonnement_ce",
+        "openfisca_output_variable": "strasbourg_piscine_aquabike_prix",
+        "bareme": lambda p: p.communes.strasbourg.piscine.aquabike.unitaire,
+    },
+    "aquabike cycle": {
+        "categorie": "aquabike cycle",
+        "champ_pu": "pu aquabike cycle",
+        "openfisca_input_variable": "strasbourg_piscine_abonnement_ce",
+        "openfisca_output_variable": "strasbourg_piscine_aquabike_cycle_prix",
+        "bareme": lambda p: p.communes.strasbourg.piscine.aquabike.cycle,
+    },
     "patinoire entrée unitaire": {
         "categorie": "patinoire entrée unitaire",
         "champ_pu": "pu patinoire entrée unitaire",
@@ -115,6 +143,13 @@ fields = {
         "openfisca_input_variable": "strasbourg_patinoire_5_entrees_ce",
         "openfisca_output_variable": "strasbourg_patinoire_5_entrees_ce_prix",
         "bareme": None,
+    },
+    "ecole de glace": {
+        "categorie": "ecole de glace",
+        "champ_pu": "pu ecole de glace",
+        "openfisca_input_variable": "strasbourg_piscine_abonnement_ce",
+        "openfisca_output_variable": "strasbourg_patinoire_ecole_de_glace_prix",
+        "bareme": lambda p: p.communes.strasbourg.patinoire.ecole_de_glace,
     },
 }
 

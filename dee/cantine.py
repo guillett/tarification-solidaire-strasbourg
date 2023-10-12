@@ -9,6 +9,7 @@ from utils import (
     StrasbourgSurveyScenario,
     base_period,
     get_data,
+    determine_qf,
     determine_qf_avec_enfants,
 )
 from results import result_index, extract

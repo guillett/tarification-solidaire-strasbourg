@@ -5,7 +5,13 @@ import os
 import sys
 
 sys.path.append("../technique")
-from utils import determine_qf, StrasbourgSurveyScenario, base_period, get_data
+from utils import (
+    determine_qf,
+    determine_qf_avec_enfants,
+    StrasbourgSurveyScenario,
+    base_period,
+    get_data,
+)
 from results import result_index, extract
 
 import numpy as np
@@ -73,7 +79,7 @@ def build_data(df, sample_count):
             "qfrule": "QF==" + np.tile(df.QF.astype("str"), sample_count),
         }
     )
-    determine_qf(famille_df)
+    determine_qf_avec_enfants(famille_df)
     menage_df = pd.DataFrame({})
     foyerfiscaux_df = pd.DataFrame({})
 
