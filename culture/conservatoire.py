@@ -11,11 +11,18 @@ import numpy as np
 import pandas as pd
 
 
-def get_df():
-    df = pd.read_excel(f"{os.getenv('DATA_FOLDER')}minimales/conservatoire_5.xlsx")
+def get_df(source):
+    if source == "caf":
+        df = pd.read_excel(
+            f"{os.getenv('DATA_FOLDER')}minimales/conservatoire_base_v6.xlsx"
+        )
+    else:
+        df = pd.read_excel(
+            f"{os.getenv('DATA_FOLDER')}minimales/conservatoire_insee_v6.xlsx"
+        )
 
     df.agent.fillna(0, inplace=True)
-    df["habitant EMS"].fillna(0, inplace=True)
+    df["habitant.EMS"].fillna(0, inplace=True)
     # df['hors EMS'].fillna(0, inplace=True)
     # df["Enfant de la fratrie"].fillna(1, inplace=True)
     # df["Cycle"].fillna(0, inplace=True)
@@ -44,6 +51,7 @@ def get_df():
         ["index", "Tranche", "qfrule"]
     ].qfrule
     df["qfrule"].fillna(tdf.qfrule.iloc[-1], inplace=True)
+    # df["qfrule"].fillna("0<=QF<=4000", inplace=True)
 
     df["individu_id"] = [*range(len(df))]
 
@@ -52,12 +60,19 @@ def get_df():
 
 def build_data(df, sample_count=1):
     count = len(df)
+    if type(sample_count) == str:
+        sample_field, qf_field = sample_count.split("#")
+        sample_ids = df[sample_field]
+        sample_count = 1
+    else:
+        sample_field, qf_field = None, None
+        sample_ids = np.repeat(list(range(sample_count)), count)
+
     individu_df = pd.DataFrame(
         {
             "famille_id": list(range(count * sample_count)),
         }
     )
-    sample_ids = np.repeat(list(range(sample_count)), count)
     sample_qfrule = np.tile(df.qfrule, sample_count)
 
     famille_df = pd.DataFrame(
@@ -74,11 +89,16 @@ def build_data(df, sample_count=1):
                 df.strasbourg_conservatoire_bourse_historique, sample_count
             ),
             "agent_ems": np.tile(df.agent, sample_count),
-            "habitant_ems": np.tile(df["habitant EMS"], sample_count),
+            "habitant_ems": np.tile(
+                df["habitant.EMS"],
+                sample_count,
+            ),
             # "strasbourg_conservatoire_enfant_dans_la_fratrie": np.tile(df["Enfant de la fratrie"], sample_count),
         }
     )
     determine_qf(famille_df)
+    if qf_field:
+        famille_df["qf_fiscal"] = df[qf_field]
 
     menage_df = pd.DataFrame({})
     foyerfiscaux_df = pd.DataFrame({})
@@ -122,8 +142,8 @@ def compute(tbs, data, base, openfisca_output_variable, suffix=""):
     base["res" + suffix] = (base.prix - base.prix_input).abs() < 0.001
 
 
-def get_results(tbs, sample_count=1, reform=None):
-    df = get_df()
+def get_results(tbs, sample_count=1, reform=None, source="caf"):
+    df = get_df(source)
 
     results = []
     rows = []
