@@ -24,8 +24,11 @@ export default function Home({ domain, force }) {
     { name: 'DEE', value: 'dee' },
     { name: 'Culture - CRR', value: 'crr' },
   ]
+  const sources = [
+    { name: 'CAF', value: 'caf' },
+    { name: 'INSEE', value: 'insee' },
+  ]
   const [email, setEmail] = useState()
-  const [subject, setSubject] = useState()
   useEffect(() => {
     axios
       .get(`${domain}/me`)
@@ -54,8 +57,8 @@ export default function Home({ domain, force }) {
               </legend>
               <div>
                 <p></p>
-                <label htmlFor="subject">Thématique : </label>
-                <select name="subject" id="subject">
+                <label htmlFor="subject_get_bareme">Thématique : </label>
+                <select name="subject" id="subject_get_bareme">
                   {options.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.name}
@@ -104,11 +107,21 @@ export default function Home({ domain, force }) {
                 />
               </div>
               <div>
-                <label htmlFor="subject">Thématique : </label>
-                <select name="subject" id="subject" value={subject}>
+                <label htmlFor="subject_get_budget">Thématique : </label>
+                <select name="subject" id="subject_get_budget">
                   {options.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="source_get_budget">Données : </label>
+                <select name="source" id="source_get_budget">
+                  {sources.map((source) => (
+                    <option key={source.value} value={source.value}>
+                      {source.name}
                     </option>
                   ))}
                 </select>
