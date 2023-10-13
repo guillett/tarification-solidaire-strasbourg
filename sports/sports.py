@@ -154,7 +154,7 @@ fields = {
 }
 
 
-def build_data(df, categorie, sample_count=1):
+def build_data(df, categorie, sample_count=1, source="caf"):
     champ_pu = fields[categorie]["champ_pu"]
     openfisca_input_variable = fields[categorie]["openfisca_input_variable"]
 
@@ -188,7 +188,7 @@ def build_data(df, categorie, sample_count=1):
             ),
         }
     )
-    determine_qf(famille_df)
+    determine_qf(famille_df, insee=(source == "insee"))
 
     menage_df = pd.DataFrame({})
     foyerfiscaux_df = pd.DataFrame({})
@@ -236,7 +236,7 @@ def compute(tbs, data, res, openfisca_output_variable, suffix=""):
     return res
 
 
-def get_results(tbs, sample_count=1, reform=None, single=None):
+def get_results(tbs, sample_count=1, reform=None, source="caf", single=None):
     df = get_df()
 
     get_total = lambda r: sum(r.prix * r.quantité)
@@ -245,7 +245,7 @@ def get_results(tbs, sample_count=1, reform=None, single=None):
     for v in fields:
         if single and v != single:
             continue
-        data, res = build_data(df, v, sample_count)
+        data, res = build_data(df, v, sample_count, source)
         openfisca_output_variable = fields[v]["openfisca_output_variable"]
         compute(tbs, data, res, openfisca_output_variable)
 

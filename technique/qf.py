@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import numpy as np
 import pandas as pd
 from rules import dyn_rules
@@ -131,14 +135,14 @@ unif_qf = dyn_rules(unif_qf_df, qf_min, qf_max)
 qfrules_constant = dyn_rules(lambda mi, ma, s: constant_qf_df, qf_min, qf_max)
 
 
-def determine_qf_avec_enfants(df):
+def determine_qf_avec_enfants(df, insee=False):
     data = qf_mapping[
         qf_mapping.TYPOLOGIE.isin(["Couple avec enfant(s)", "Famille monoparentale"])
     ]
-    determine_qf(df, data)
+    determine_qf(df, insee, data)
 
 
-def determine_qf(df, data=qf_mapping):
+def determine_qf(df, insee=False, data=qf_mapping):
     df["qf_caf"] = 0
     df["qf_fiscal"] = 0
     df["TYPOLOGIE"] = ""
@@ -167,6 +171,17 @@ def determine_qf(df, data=qf_mapping):
     if bogus:
         r = "\n".join([f"{r} ({n})" for r, n in bogus])
         warnings.warn(f"Bogus rules:\n{r}")
+
+    if insee:
+        insee_data = pd.read_pickle(
+            f"{os.getenv('DATA_FOLDER')}minimales/QFEMS_INSEE_v1.pickle"
+        )
+        for n, gdf in df.groupby("TYPOLOGIE"):
+            b = insee_data[insee_data.TYPOLOGIE == n]
+            # import pdb; pdb.set_trace()
+            df.loc[gdf.index, "qf_fiscal"] = b.QFEMS.sample(
+                len(gdf), replace=True, ignore_index=True
+            ).values
 
 
 # La séparation par sample_id ralentit trop les estimations pour la DEE.
