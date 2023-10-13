@@ -29,6 +29,9 @@ export default function Home({ domain, force }) {
     { name: 'INSEE', value: 'insee' },
   ]
   const [email, setEmail] = useState()
+  const [subject, setSubject] = useState(options[0].value)
+  const [source, setSource] = useState(sources[0].value)
+  const [error, setError] = useState()
   useEffect(() => {
     axios
       .get(`${domain}/me`)
@@ -39,6 +42,14 @@ export default function Home({ domain, force }) {
         }
       })
   }, [domain])
+
+  useEffect(() => {
+    if (subject == 'dee' && source == 'insee') {
+      setError('Les données INSEE ne peuvent pas être utilisée pour la DEE.')
+    } else {
+      setError()
+    }
+  })
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-2">
@@ -108,7 +119,12 @@ export default function Home({ domain, force }) {
               </div>
               <div>
                 <label htmlFor="subject_get_budget">Thématique : </label>
-                <select name="subject" id="subject_get_budget">
+                <select
+                  name="subject"
+                  id="subject_get_budget"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                >
                   {options.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.name}
@@ -118,7 +134,12 @@ export default function Home({ domain, force }) {
               </div>
               <div>
                 <label htmlFor="source_get_budget">Données : </label>
-                <select name="source" id="source_get_budget">
+                <select
+                  name="source"
+                  id="source_get_budget"
+                  value={source}
+                  onChange={(e) => setSource(e.target.value)}
+                >
                   {sources.map((source) => (
                     <option key={source.value} value={source.value}>
                       {source.name}
@@ -126,7 +147,10 @@ export default function Home({ domain, force }) {
                   ))}
                 </select>
               </div>
-              <button type="submit">Évaluer les scénarios</button>
+              {error && <div className="warning">{error}</div>}
+              <button type="submit" disabled={error}>
+                Évaluer les scénarios
+              </button>
             </fieldset>
           </form>
           <p>
