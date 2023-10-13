@@ -17,7 +17,7 @@ function isOk(email, force) {
 }
 
 export default function Home({ domain, force }) {
-  const options = [
+  const subjects = [
     { name: 'Culture - CCS', value: 'ccs' },
     { name: 'Mobilité', value: 'cts' },
     { name: 'Sports', value: 'sports' },
@@ -29,7 +29,7 @@ export default function Home({ domain, force }) {
     { name: 'INSEE', value: 'insee' },
   ]
   const [email, setEmail] = useState()
-  const [subject, setSubject] = useState(options[0].value)
+  const [subject, setSubject] = useState(subjects[0].value)
   const [source, setSource] = useState(sources[0].value)
   const [error, setError] = useState()
   useEffect(() => {
@@ -70,9 +70,9 @@ export default function Home({ domain, force }) {
                 <p></p>
                 <label htmlFor="subject_get_bareme">Thématique : </label>
                 <select name="subject" id="subject_get_bareme">
-                  {options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.name}
+                  {subjects.map((subject) => (
+                    <option key={subject.value} value={subject.value}>
+                      {subject.name}
                     </option>
                   ))}
                 </select>
@@ -125,9 +125,9 @@ export default function Home({ domain, force }) {
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                 >
-                  {options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.name}
+                  {subjects.map((subject) => (
+                    <option key={subject.value} value={subject.value}>
+                      {subject.name}
                     </option>
                   ))}
                 </select>
