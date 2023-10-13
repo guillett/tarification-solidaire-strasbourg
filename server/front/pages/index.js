@@ -28,9 +28,28 @@ export default function Home({ domain, force }) {
     { name: 'CAF', value: 'caf' },
     { name: 'INSEE', value: 'insee' },
   ]
+  const ajustments = [
+    {
+      name: 'pas d’ajustment',
+      value: 'v1',
+    },
+    {
+      name: '+1 part',
+      value: 'v2',
+    },
+    {
+      name: '+0.5 part',
+      value: 'v3',
+    },
+    {
+      name: '+0.25 part',
+      value: 'v4',
+    },
+  ]
   const [email, setEmail] = useState()
   const [subject, setSubject] = useState(subjects[0].value)
   const [source, setSource] = useState(sources[0].value)
+  const [ajustment, setAjustment] = useState(ajustments[0].value)
   const [error, setError] = useState()
   useEffect(() => {
     axios
@@ -143,6 +162,24 @@ export default function Home({ domain, force }) {
                   {sources.map((source) => (
                     <option key={source.value} value={source.value}>
                       {source.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="ajustment_get_budget">
+                  Ajustement du QF EMS pour les personnes isolées (avec ou sans
+                  enfant) :{' '}
+                </label>
+                <select
+                  name="ajustment"
+                  id="ajustment_get_budget"
+                  value={ajustment}
+                  onChange={(e) => setAjustment(e.target.value)}
+                >
+                  {ajustments.map((ajustment) => (
+                    <option key={ajustment.value} value={ajustment.value}>
+                      {ajustment.name}
                     </option>
                   ))}
                 </select>

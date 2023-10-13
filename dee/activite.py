@@ -11,6 +11,7 @@ from utils import (
     StrasbourgSurveyScenario,
     base_period,
     get_data,
+    adjust_df,
 )
 from results import result_index, extract
 
@@ -66,7 +67,7 @@ def get_dfs():
     return df_apm_usage, df_al
 
 
-def build_data(df, sample_count):
+def build_data(df, sample_count, adjustment):
     sample_ids = np.repeat(list(range(sample_count)), len(df))
     individu_df = pd.DataFrame(
         {
@@ -80,6 +81,7 @@ def build_data(df, sample_count):
         }
     )
     determine_qf_avec_enfants(famille_df)
+    adjust_df(famille_df, adjustment)
     menage_df = pd.DataFrame({})
     foyerfiscaux_df = pd.DataFrame({})
 
@@ -107,12 +109,12 @@ al_fields = {
 }
 
 
-def get_results(tbs, sample_count=1, reform=None):
+def get_results(tbs, sample_count=1, reform=None, ajustment="v1"):
     df_apm_usage, df_al = get_dfs()
     rows = []
     dfs = []
 
-    data_apm = build_data(df_apm_usage, sample_count)
+    data_apm = build_data(df_apm_usage, sample_count, ajustment)
     apm_sample_ids = np.repeat(list(range(sample_count)), len(df_apm_usage))
     scenario_apm = StrasbourgSurveyScenario(tbs, data=data_apm)
     res_apm = pd.DataFrame(
@@ -147,7 +149,7 @@ def get_results(tbs, sample_count=1, reform=None):
 
     rows.append(row)
 
-    data_al = build_data(df_al, sample_count)
+    data_al = build_data(df_al, sample_count, ajustment)
     scenario_al = StrasbourgSurveyScenario(tbs, data=data_al)
     res_al = pd.DataFrame(
         data={

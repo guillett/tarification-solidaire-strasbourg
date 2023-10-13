@@ -52,6 +52,20 @@ def gen_real_qf_df(data):
     return real_qf_df
 
 
+def adjust_df(df, adjustment):
+    values = {"v1": 0.0, "v2": 1.0, "v3": 0.5, "v4": 0.25}
+    v = values[adjustment]
+    coef = np.select(
+        [
+            df.TYPOLOGIE == "Isolé(s) sans enfant",
+            df.TYPOLOGIE == "Famille monoparentale",
+        ],
+        [(1 + v) / 1, (1.5 + v) / 1.5],
+        default=1,
+    )
+    df["qf_fiscal"] /= coef
+
+
 def fake_formula(caf):
     return np.maximum(
         0,

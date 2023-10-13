@@ -1,6 +1,6 @@
 import sys
 from age import determine_age
-from qf import determine_qf, determine_qf_avec_enfants, unif_qf
+from qf import determine_qf, determine_qf_avec_enfants, unif_qf, adjust_df
 from scenario import (
     StrasbourgSurveyScenario,
     base_period,

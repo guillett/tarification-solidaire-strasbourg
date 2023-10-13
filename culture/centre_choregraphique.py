@@ -5,7 +5,13 @@ import os
 import sys
 
 sys.path.append("../technique")
-from utils import determine_age, determine_qf, StrasbourgSurveyScenario, base_period
+from utils import (
+    determine_age,
+    determine_qf,
+    adjust_df,
+    StrasbourgSurveyScenario,
+    base_period,
+)
 from results import result_index, extract
 import numpy as np
 import pandas as pd
@@ -72,7 +78,7 @@ fields = {
 }
 
 
-def build_data(product_df, categorie, sample_count=1):
+def build_data(product_df, categorie, sample_count=1, ajustment="v1"):
     count = len(product_df)
 
     if type(sample_count) == str:
@@ -103,6 +109,7 @@ def build_data(product_df, categorie, sample_count=1):
     determine_qf(famille_df)
     if qf_field:
         famille_df["qf_fiscal"] = product_df[qf_field]
+    adjust_df(famille_df, adjustment)
 
     menage_df = pd.DataFrame({})
     foyerfiscaux_df = pd.DataFrame({})
@@ -146,7 +153,7 @@ def compute(tbs, data, base, openfisca_output_variable, suffix=""):
     return base
 
 
-def get_results(tbs, sample_count=1, reform=None, source="caf"):
+def get_results(tbs, sample_count=1, reform=None, source="caf", ajustment="v1"):
     df = get_df(source)
 
     results = []
@@ -159,7 +166,7 @@ def get_results(tbs, sample_count=1, reform=None, source="caf"):
             continue
         openfisca_output_variable = fields[v]
 
-        (data, base) = build_data(fdf, v, sample_count)
+        (data, base) = build_data(fdf, v, sample_count, ajustment=ajustment)
         res = compute(tbs, data, base, openfisca_output_variable)
         row = ["Culture", v]
         count, value = extract(res, output_field)

@@ -11,6 +11,7 @@ from utils import (
     get_data,
     determine_qf,
     determine_qf_avec_enfants,
+    adjust_df,
 )
 from results import result_index, extract
 
@@ -62,7 +63,7 @@ fields = {
 }
 
 
-def build_data(df, sample_count):
+def build_data(df, sample_count, adjustment):
     coef_sans_resa = 1
     raw_df = pd.pivot_table(
         df,
@@ -111,6 +112,7 @@ def build_data(df, sample_count):
         }
     )
     determine_qf_avec_enfants(famille_df)
+    adjust_df(famille_df, adjustment)
 
     menage_df = pd.DataFrame({})
     foyerfiscaux_df = pd.DataFrame({})
@@ -132,9 +134,9 @@ def build_data(df, sample_count):
     return data
 
 
-def get_results(tbs, sample_count=2, reform=None, single=None):
+def get_results(tbs, sample_count=2, reform=None, adjustment="v1", single=None):
     df = get_df()
-    data = build_data(df, sample_count)
+    data = build_data(df, sample_count, adjustment)
     rows = []
 
     scenario = StrasbourgSurveyScenario(tbs, data=data)

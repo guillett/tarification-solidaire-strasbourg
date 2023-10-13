@@ -194,7 +194,9 @@ def build_reform(tbs, sheet):
     return StatutReform(sbr)
 
 
-def process_file_sheets(tbs, subject, source, get_result_fnc, input_file, output_file):
+def process_file_sheets(
+    tbs, subject, source, ajustment, get_result_fnc, input_file, output_file
+):
     if input_file:
         n = 10
         if subject == "ccs" and source == "insee":
@@ -216,7 +218,7 @@ def process_file_sheets(tbs, subject, source, get_result_fnc, input_file, output
     reforms = []
     for name, sheet in scenarios:
         reform = build_reform(tbs, sheet)
-        v = get_result_fnc(tbs, n, reform, source)
+        v = get_result_fnc(tbs, n, reform, source, ajustment)
         res.append((name, v))
         reforms.append((name, reform))
 

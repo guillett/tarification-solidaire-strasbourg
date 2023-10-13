@@ -5,7 +5,13 @@ import os
 import sys
 
 sys.path.append("../technique")
-from utils import determine_age, determine_qf, StrasbourgSurveyScenario, base_period
+from utils import (
+    determine_age,
+    determine_qf,
+    StrasbourgSurveyScenario,
+    base_period,
+    adjust_df,
+)
 from results import result_index, extract
 import numpy as np
 import pandas as pd
@@ -189,6 +195,7 @@ def build_data(df, categorie, sample_count=1, source="caf"):
         }
     )
     determine_qf(famille_df, insee=(source == "insee"))
+    adjust_df(famille_df, adjustment)
 
     menage_df = pd.DataFrame({})
     foyerfiscaux_df = pd.DataFrame({})
@@ -236,7 +243,9 @@ def compute(tbs, data, res, openfisca_output_variable, suffix=""):
     return res
 
 
-def get_results(tbs, sample_count=1, reform=None, source="caf", single=None):
+def get_results(
+    tbs, sample_count=1, reform=None, source="caf", ajustement="v1", single=None
+):
     df = get_df()
 
     get_total = lambda r: sum(r.prix * r.quantité)

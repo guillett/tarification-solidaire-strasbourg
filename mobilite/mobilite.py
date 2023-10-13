@@ -9,7 +9,13 @@ import pandas as pd
 from results import result_index, extract
 
 load_dotenv()
-from utils import determine_age, determine_qf, StrasbourgSurveyScenario, base_period
+from utils import (
+    determine_age,
+    determine_qf,
+    StrasbourgSurveyScenario,
+    base_period,
+    adjust_df,
+)
 
 
 def add_compensation(df):
@@ -45,7 +51,7 @@ def get_df():
     return df, compens_constant
 
 
-def build_data(df, res_df, sample_count=1, source="caf"):
+def build_data(df, res_df, sample_count=1, source="caf", ajustement="v1"):
     count = int(sum(df.quantité))
     sample_ids = np.repeat(list(range(sample_count)), count)
     indiv_ids = np.tile(list(range(count)), sample_count)
@@ -82,6 +88,7 @@ def build_data(df, res_df, sample_count=1, source="caf"):
         }
     )
     determine_qf(sample_famille_df, insee=(source == "insee"))
+    adjust_df(sample_famille_df, adjustment)
 
     sample_menage_df = pd.DataFrame(
         {
