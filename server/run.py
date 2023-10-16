@@ -110,9 +110,10 @@ def auth():
 
 @application.route("/me")
 def me():
-    if "email" in session:
-        return jsonify({"email": session["email"]})
-    else:
+    try:
+        login = get_login()
+        return jsonify({"email": login})
+    except Exception as e:
         return jsonify({"error": "not logged in"}), 401
 
 
@@ -133,19 +134,19 @@ def get_files():
 def files():
     try:
         login = get_login()
+        assert login in AUTORIZED_EMAILS
     except Exception as e:
         return jsonify({"error": "unautorized"}), 403
 
-    files = get_files()
+    file_data = get_files()
     if request.method == "POST":
         name = request.form["name"]
-        file_names = [f["name"] for f in files]
+        file_names = [f["name"] for f in file_data]
         if name in file_names:
             file_path = f"{UPLOAD_FOLDER}/{name}"
             return send_file(file_path)
     else:
-        if login in AUTORIZED_EMAILS:
-            return jsonify(files)
+        return jsonify(file_data)
 
 
 def get_login():
