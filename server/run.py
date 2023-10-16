@@ -95,7 +95,16 @@ def auth():
         oauth_userinfo_url, headers={"authorization": f"bearer {token}"}
     )
     session["id_token"] = res_token_json["id_token"]
-    session["email"] = res_info.json()["email"]
+
+    email = res_info.json()["email"]
+    login = email[0 : email.find("@")]
+    session["email"] = email
+
+    timestamp = get_timestamp()
+    log_file = f"{UPLOAD_FOLDER}/.connexions/{timestamp}_{login}"
+    with open(log_file, "w") as f:
+        pass
+
     return redirect("/")
 
 
@@ -104,7 +113,39 @@ def me():
     if "email" in session:
         return jsonify({"email": session["email"]})
     else:
-        return jsonify({"error": "not logged in"})
+        return jsonify({"error": "not logged in"}), 401
+
+
+AUTORIZED_EMAILS = os.getenv("AUTORIZED_EMAILS", "").split(",")
+
+
+def get_files():
+    files = [
+        {"name": f.name, "size": round(f.stat().st_size / 1000000, 3)}
+        for f in os.scandir(UPLOAD_FOLDER)
+        if not f.name.startswith(".")
+    ]
+    files.sort(key=lambda i: i["name"])
+    return files
+
+
+@application.route("/files", methods=["GET", "POST"])
+def files():
+    try:
+        login = get_login()
+    except Exception as e:
+        return jsonify({"error": "unautorized"}), 403
+
+    files = get_files()
+    if request.method == "POST":
+        name = request.form["name"]
+        file_names = [f["name"] for f in files]
+        if name in file_names:
+            file_path = f"{UPLOAD_FOLDER}/{name}"
+            return send_file(file_path)
+    else:
+        if login in AUTORIZED_EMAILS:
+            return jsonify(files)
 
 
 def get_login():
@@ -150,6 +191,13 @@ def budget():
     adjustment = request.form["adjustment"]
     timestamp = get_timestamp()
     login = get_login()
+
+    if (
+        subject not in ["ccs", "cts", "sports", "dee", "crr"]
+        or source not in ["caf", "insee"]
+        or adjustment not in ["v1", "v2", "v3", "v4"]
+    ):
+        return jsonify({"error": "incorrect data"}), 500
 
     if subject not in get_results_fncs:
         raise Exception(f"Oupsy. {subject}")

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 
+import Details from '../components/details.js'
+
 export const getStaticProps = async (context) => {
   const domain =
     process.env.NODE_ENV == 'production' ? '' : 'http://127.0.0.1:8000'
@@ -60,6 +62,7 @@ export default function Home({ domain, force }) {
           setEmail(info.email)
         }
       })
+      .catch((e) => {})
   }, [domain])
 
   useEffect(() => {
@@ -197,6 +200,7 @@ export default function Home({ domain, force }) {
           <div>
             <a href={`${domain}/logout`}>Se déconnecter</a>
           </div>
+          <Details domain={domain} />
         </div>
       )}
 

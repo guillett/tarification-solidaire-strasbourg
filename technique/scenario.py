@@ -302,7 +302,7 @@ def process_file_sheets(
             baremes[scenario].to_excel(
                 file, sheet_name=f"{scenario} barèmes", index=False
             )
-        gdfs[i].to_pickle(f"{output_file}_{scenario}.pickle")
+        gdfs[i].to_parquet(f"{output_file}_{scenario}.parquet")
 
     file.close()
 
