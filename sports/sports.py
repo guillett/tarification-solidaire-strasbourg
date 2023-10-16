@@ -160,7 +160,7 @@ fields = {
 }
 
 
-def build_data(df, categorie, sample_count=1, source="caf"):
+def build_data(df, categorie, sample_count=1, source="caf", adjustment="v1"):
     champ_pu = fields[categorie]["champ_pu"]
     openfisca_input_variable = fields[categorie]["openfisca_input_variable"]
 
