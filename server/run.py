@@ -110,10 +110,9 @@ def auth():
 
 @application.route("/me")
 def me():
-    try:
-        login = get_login()
-        return jsonify({"email": login})
-    except Exception as e:
+    if "email" in session:
+        return jsonify({"email": session["email"]})
+    else:
         return jsonify({"error": "not logged in"}), 401
 
 
@@ -132,11 +131,9 @@ def get_files():
 
 @application.route("/files", methods=["GET", "POST"])
 def files():
-    try:
-        login = get_login()
-        assert login in AUTORIZED_EMAILS
-    except Exception as e:
-        return jsonify({"error": "unautorized"}), 403
+    if "email" not in session or session["email"] not in AUTORIZED_EMAILS:
+        if os.getenv("FLASK_DEBUG") != "1":
+            return jsonify({"error": "unautorized"}), 403
 
     file_data = get_files()
     if request.method == "POST":
