@@ -19,7 +19,7 @@ import pandas as pd
 
 def get_df():
     return pd.read_excel(
-        f"{os.getenv('DATA_FOLDER')}sports/extractions_denombrement.ods"
+        f"{os.getenv('DATA_FOLDER')}minimales/sports_extractions_denombrement.ods"
     )
 
 
