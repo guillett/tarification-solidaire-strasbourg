@@ -27,11 +27,11 @@ import pandas as pd
 import datetime
 
 
-def get_results(tbs, sample_count=2, reform=None, source="caf", ajustment="v1"):
+def get_results(tbs, sample_count=2, reform=None, source="caf", adjustment="v1"):
     if source != "caf":
         raise Exception("TODO")
-    (crecap, cdfs) = cantine.get_results(tbs, sample_count, reform, ajustment)
-    (arecap, adfs) = activite.get_results(tbs, sample_count, reform, ajustment)
+    (crecap, cdfs) = cantine.get_results(tbs, sample_count, reform, adjustment)
+    (arecap, adfs) = activite.get_results(tbs, sample_count, reform, adjustment)
 
     return pd.concat([crecap, arecap]), [*cdfs, *adfs]
 

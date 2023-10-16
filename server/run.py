@@ -147,7 +147,7 @@ get_results_fncs = {
 def budget():
     subject = request.form["subject"]
     source = request.form["source"]
-    ajustment = request.form["ajustment"]
+    adjustment = request.form["adjustment"]
     timestamp = get_timestamp()
     login = get_login()
 
@@ -156,7 +156,7 @@ def budget():
 
     if "file" in request.files:
         f = request.files["file"]
-        file_id = f"{subject}_{source}_{ajustment}_{timestamp}_{login}"
+        file_id = f"{subject}_{source}_{adjustment}_{timestamp}_{login}"
         input_filename = f"{UPLOAD_FOLDER}/baremes_{file_id}.ods"
         f.save(input_filename)
 
@@ -175,7 +175,7 @@ def budget():
         base,
         subject,
         source,
-        ajustment,
+        adjustment,
         get_results_fnc,
         input_filename,
         output_filename,

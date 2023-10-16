@@ -28,9 +28,9 @@ export default function Home({ domain, force }) {
     { name: 'CAF', value: 'caf' },
     { name: 'INSEE', value: 'insee' },
   ]
-  const ajustments = [
+  const adjustments = [
     {
-      name: 'pas d’ajustment',
+      name: 'pas d’ajustement',
       value: 'v1',
     },
     {
@@ -49,7 +49,7 @@ export default function Home({ domain, force }) {
   const [email, setEmail] = useState()
   const [subject, setSubject] = useState(subjects[0].value)
   const [source, setSource] = useState(sources[0].value)
-  const [ajustment, setAjustment] = useState(ajustments[0].value)
+  const [adjustment, setadjustment] = useState(adjustments[0].value)
   const [error, setError] = useState()
   useEffect(() => {
     axios
@@ -167,19 +167,19 @@ export default function Home({ domain, force }) {
                 </select>
               </div>
               <div>
-                <label htmlFor="ajustment_get_budget">
+                <label htmlFor="adjustment_get_budget">
                   Ajustement du QF EMS pour les personnes isolées (avec ou sans
                   enfant) :{' '}
                 </label>
                 <select
-                  name="ajustment"
-                  id="ajustment_get_budget"
-                  value={ajustment}
-                  onChange={(e) => setAjustment(e.target.value)}
+                  name="adjustment"
+                  id="adjustment_get_budget"
+                  value={adjustment}
+                  onChange={(e) => setadjustment(e.target.value)}
                 >
-                  {ajustments.map((ajustment) => (
-                    <option key={ajustment.value} value={ajustment.value}>
-                      {ajustment.name}
+                  {adjustments.map((adjustment) => (
+                    <option key={adjustment.value} value={adjustment.value}>
+                      {adjustment.name}
                     </option>
                   ))}
                 </select>

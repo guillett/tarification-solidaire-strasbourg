@@ -58,7 +58,7 @@ def get_df(source):
     return df
 
 
-def build_data(df, sample_count=1, ajustment="v1"):
+def build_data(df, sample_count=1, adjustment="v1"):
     count = len(df)
     if type(sample_count) == str:
         sample_field, qf_field = sample_count.split("#")
@@ -143,7 +143,7 @@ def compute(tbs, data, base, openfisca_output_variable, suffix=""):
     base["res" + suffix] = (base.prix - base.prix_input).abs() < 0.001
 
 
-def get_results(tbs, sample_count=1, reform=None, source="caf", ajustment="v1"):
+def get_results(tbs, sample_count=1, reform=None, source="caf", adjustment="v1"):
     df = get_df(source)
 
     results = []

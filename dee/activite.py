@@ -109,12 +109,12 @@ al_fields = {
 }
 
 
-def get_results(tbs, sample_count=1, reform=None, ajustment="v1"):
+def get_results(tbs, sample_count=1, reform=None, adjustment="v1"):
     df_apm_usage, df_al = get_dfs()
     rows = []
     dfs = []
 
-    data_apm = build_data(df_apm_usage, sample_count, ajustment)
+    data_apm = build_data(df_apm_usage, sample_count, adjustment)
     apm_sample_ids = np.repeat(list(range(sample_count)), len(df_apm_usage))
     scenario_apm = StrasbourgSurveyScenario(tbs, data=data_apm)
     res_apm = pd.DataFrame(
@@ -149,7 +149,7 @@ def get_results(tbs, sample_count=1, reform=None, ajustment="v1"):
 
     rows.append(row)
 
-    data_al = build_data(df_al, sample_count, ajustment)
+    data_al = build_data(df_al, sample_count, adjustment)
     scenario_al = StrasbourgSurveyScenario(tbs, data=data_al)
     res_al = pd.DataFrame(
         data={

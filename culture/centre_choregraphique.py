@@ -78,7 +78,7 @@ fields = {
 }
 
 
-def build_data(product_df, categorie, sample_count=1, ajustment="v1"):
+def build_data(product_df, categorie, sample_count=1, adjustment="v1"):
     count = len(product_df)
 
     if type(sample_count) == str:
@@ -153,7 +153,7 @@ def compute(tbs, data, base, openfisca_output_variable, suffix=""):
     return base
 
 
-def get_results(tbs, sample_count=1, reform=None, source="caf", ajustment="v1"):
+def get_results(tbs, sample_count=1, reform=None, source="caf", adjustment="v1"):
     df = get_df(source)
 
     results = []
@@ -166,7 +166,7 @@ def get_results(tbs, sample_count=1, reform=None, source="caf", ajustment="v1"):
             continue
         openfisca_output_variable = fields[v]
 
-        (data, base) = build_data(fdf, v, sample_count, ajustment=ajustment)
+        (data, base) = build_data(fdf, v, sample_count, adjustment=adjustment)
         res = compute(tbs, data, base, openfisca_output_variable)
         row = ["Culture", v]
         count, value = extract(res, output_field)
