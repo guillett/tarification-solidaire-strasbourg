@@ -34,7 +34,7 @@ def get_df(source):
             f"{os.getenv('DATA_FOLDER')}minimales/CCS_ELEVES_anon_insee_v4.pickle"
         )
     df_types = pd.read_excel(
-        f"{os.getenv('DATA_FOLDER')}culture/CSS_Tarifs20230720.xlsx",
+        f"{os.getenv('DATA_FOLDER')}minimales/CSS_Tarifs20230720.xlsx",
         names=["Nom complet", "Profil", "Cours", "Type", "Tarif", "Période", "Montant"],
         index_col=None,
     )
