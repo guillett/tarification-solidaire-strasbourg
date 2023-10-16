@@ -101,7 +101,7 @@ def auth():
     session["email"] = email
 
     timestamp = get_timestamp()
-    log_file = f"{UPLOAD_FOLDER}/.connexions/{timestamp}_{login}"
+    log_file = f"{UPLOAD_FOLDER}.connexions/{timestamp}_{login}"
     with open(log_file, "w") as f:
         pass
 
