@@ -51,7 +51,7 @@ def get_df():
     return df, compens_constant
 
 
-def build_data(df, res_df, sample_count=1, source="caf", ajustement="v1"):
+def build_data(df, res_df, sample_count=1, source="caf", adjustment="v1"):
     count = int(sum(df.quantité))
     sample_ids = np.repeat(list(range(sample_count)), count)
     indiv_ids = np.tile(list(range(count)), sample_count)
@@ -184,7 +184,7 @@ def compute_result(
     return (sample_res, sample_recette)
 
 
-def get_results(tbs, sample_count=1, reform=None, source="caf"):
+def get_results(tbs, sample_count=1, reform=None, source="caf", adjustment="v1"):
     df, compens_constant = get_df()
     rdf = pd.DataFrame(
         data={
@@ -193,7 +193,7 @@ def get_results(tbs, sample_count=1, reform=None, source="caf"):
             "tp": df.PU * 0,
         }
     )
-    data, complement_df = build_data(df, rdf, sample_count, source)
+    data, complement_df = build_data(df, rdf, sample_count, source, adjustment)
     scenario = StrasbourgSurveyScenario(tbs, data=data)
     (res, recettes) = compute_result(scenario, complement_df, 0, compens_constant)
     field = "cout"
@@ -223,8 +223,8 @@ def get_results(tbs, sample_count=1, reform=None, source="caf"):
     return pd.DataFrame([row], columns=result_index[0 : len(row)]), [(name, result)]
 
 
-def server_get_results(tbs, sample_count=1, reform=None, source="caf"):
-    recap, [(n, df)] = get_results(tbs, sample_count, reform, source)
+def server_get_results(tbs, sample_count=1, reform=None, source="caf", ajustement="v1"):
+    recap, [(n, df)] = get_results(tbs, sample_count, reform, source, ajustement)
     df["prix"] = df.pu_calc_ht * 12
     df["prix_r"] = df.pu_calc_ht_r * 12
     return recap, [(n, df)]
