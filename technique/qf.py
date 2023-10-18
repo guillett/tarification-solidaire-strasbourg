@@ -52,7 +52,7 @@ def gen_real_qf_df(data):
     return real_qf_df
 
 
-def adjust_df(df, adjustment):
+def get_adjustment_coef(df, adjustment):
     values = {"v1": 0.0, "v2": 1.0, "v3": 0.5, "v4": 0.25}
     v = values[adjustment]
     coef = np.select(
@@ -63,6 +63,11 @@ def adjust_df(df, adjustment):
         [(1 + v) / 1, (1.5 + v) / 1.5],
         default=1,
     )
+    return coef
+
+
+def adjust_df(df, adjustment):
+    coef = get_adjustment_coef(df, adjustment)
     df["qf_fiscal"] /= coef
 
 
@@ -196,6 +201,19 @@ def determine_qf(df, insee=False, data=qf_mapping):
             df.loc[gdf.index, "qf_fiscal"] = b.QFEMS.sample(
                 len(gdf), replace=True, ignore_index=True
             ).values
+
+
+def force_insee(df):
+    insee_data = pd.read_pickle(
+        f"{os.getenv('DATA_FOLDER')}minimales/QFEMS_INSEE_v1.pickle"
+    )
+    for (n, insee), gdf in df.groupby(["TYPOLOGIE", "insee"]):
+        if not insee:
+            continue
+        b = insee_data[insee_data.TYPOLOGIE == n]
+        df.loc[gdf.index, "qf_fiscal"] = b.QFEMS.sample(
+            len(gdf), replace=True, ignore_index=True
+        ).values
 
 
 # La séparation par sample_id ralentit trop les estimations pour la DEE.

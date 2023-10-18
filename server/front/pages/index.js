@@ -29,22 +29,26 @@ export default function Home({ domain, force }) {
   const sources = [
     { name: 'CAF', value: 'caf' },
     { name: 'INSEE', value: 'insee' },
+    {
+      name: 'CAF Réduit / INSEE Tarif plein (mobilité uniquement)',
+      value: 'caf_insee_complete',
+    },
   ]
   const adjustments = [
     {
-      name: 'pas d’ajustement',
+      name: 'pas d’ajustement (v1)',
       value: 'v1',
     },
     {
-      name: '+1 part',
+      name: '+1 part (v2)',
       value: 'v2',
     },
     {
-      name: '+0.5 part',
+      name: '+0.5 part (v3)',
       value: 'v3',
     },
     {
-      name: '+0.25 part',
+      name: '+0.25 part (v4)',
       value: 'v4',
     },
   ]

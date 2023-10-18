@@ -192,7 +192,7 @@ def budget():
 
     if (
         subject not in ["ccs", "cts", "sports", "dee", "crr"]
-        or source not in ["caf", "insee"]
+        or source not in ["caf", "insee", "caf_insee_complete"]
         or adjustment not in ["v1", "v2", "v3", "v4"]
     ):
         return jsonify({"error": "incorrect data"}), 500

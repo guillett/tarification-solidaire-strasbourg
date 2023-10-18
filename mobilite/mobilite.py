@@ -17,6 +17,8 @@ from utils import (
     adjust_df,
 )
 
+from qf import force_insee
+
 
 def add_compensation(df):
     max_prix = df[["reduit", "pu_calc"]].groupby(by="reduit").max().pu_calc
@@ -35,7 +37,7 @@ def set_ajustement_mensuel_num(df):
 
 def get_df():
     full_df = pd.read_excel(
-        f"{os.getenv('DATA_FOLDER')}mobilite/extrait-Tableau_de_Bord_CTS_Valeurs 012023_ajout_qf_age.xlsx",
+        f"{os.getenv('DATA_FOLDER')}minimales/cts_extrait-Tableau_de_Bord_CTS_Valeurs 012023_ajout_qf_age.xlsx",
         sheet_name="QRD - Quantités",
     )
     set_ajustement_mensuel_num(full_df)
@@ -85,9 +87,12 @@ def build_data(df, res_df, sample_count=1, source="caf", adjustment="v1"):
         {
             "sample_id": sample_ids,
             "qfrule": sample_qfrule,
+            "insee": np.tile(np.repeat(df.insee, df.quantité), sample_count),
         }
     )
     determine_qf(sample_famille_df, insee=(source == "insee"))
+    if source == "caf_insee_complete":
+        force_insee(sample_famille_df)
     adjust_df(sample_famille_df, adjustment)
 
     sample_menage_df = pd.DataFrame(
