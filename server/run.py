@@ -146,13 +146,20 @@ def files():
         return jsonify(file_data)
 
 
+CTS_EMAILS = os.getenv("CTS_EMAILS", "").split(",")
+
+
 def get_login():
     if os.getenv("FLASK_DEBUG") == "1":
         return "thomas"
 
     if "email" in session:
         email = session["email"]
-        if email.endswith("@strasbourg.eu") or email == "thomas@codeursenliberte.fr":
+        if (
+            email.endswith("@strasbourg.eu")
+            or email == "thomas@codeursenliberte.fr"
+            or email in CTS_EMAILS
+        ):
             return email[0 : email.find("@")]
         raise Exception(f"Wrong email, no chocolate ({email})")
     raise Exception("No email, no chocolate")

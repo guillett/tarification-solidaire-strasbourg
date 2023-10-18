@@ -14,6 +14,7 @@ function isOk(email, force) {
   return (
     force ||
     email?.endsWith('@strasbourg.eu') ||
+    email?.endsWith('@cts-strasbourg.fr') ||
     email === 'thomas@codeursenliberte.fr'
   )
 }
