@@ -14,11 +14,11 @@ import pandas as pd
 def get_df(source):
     if source == "caf":
         df = pd.read_excel(
-            f"{os.getenv('DATA_FOLDER')}minimales/conservatoire_base_v6.xlsx"
+            f"{os.getenv('DATA_FOLDER')}minimales/conservatoire_base_v7.xlsx"
         )
     else:
         df = pd.read_excel(
-            f"{os.getenv('DATA_FOLDER')}minimales/conservatoire_insee_v6.xlsx"
+            f"{os.getenv('DATA_FOLDER')}minimales/conservatoire_insee_v7.xlsx"
         )
 
     df.agent.fillna(0, inplace=True)
