@@ -27,11 +27,11 @@ def get_df(source):
     # )
     if source == "caf":
         raw_df = pd.read_pickle(
-            f"{os.getenv('DATA_FOLDER')}minimales/CCS_ELEVES_anon_base_v5.pickle"
+            f"{os.getenv('DATA_FOLDER')}minimales/CCS_ELEVES_anon_base_v6.pickle"
         )
     else:
         raw_df = pd.read_pickle(
-            f"{os.getenv('DATA_FOLDER')}minimales/CCS_ELEVES_anon_insee_v5.pickle"
+            f"{os.getenv('DATA_FOLDER')}minimales/CCS_ELEVES_anon_insee_v6.pickle"
         )
     df_types = pd.read_excel(
         f"{os.getenv('DATA_FOLDER')}minimales/CSS_Tarifs20230720.xlsx",
